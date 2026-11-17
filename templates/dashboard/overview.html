@@ -2,7 +2,7 @@
 {% load ui %}
 {% block dash_title %}ภาพรวม{% endblock %}
 {% block dash_content %}
-<div class="d-flex justify-content-between align-items-end mb-4"><div><span class="lbl d-block mb-1">ภาพรวม</span><h1 class="h3 mb-0">สวัสดี {{ user.get_short_name }}</h1><div class="small text-secondary">ข้อมูล {{ s.days }} วันล่าสุด</div></div></div>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4"><div><span class="lbl mb-2">ภาพรวม · {{ s.days }} วันล่าสุด</span><h1 class="h3 mb-0 mt-2"><span class="text-secondary fw-semibold">สวัสดี</span> {{ user.get_short_name }}</h1></div><div class="d-flex gap-2"><a href="{% url 'dashboard:exports' %}" class="btn btn-outline-dark btn-sm">{% icon "file-earmark-bar-graph" %} รายงาน</a><a href="{% url 'dashboard:course_add' %}" class="btn btn-dark btn-sm">{% icon "plus-lg" %} สร้างคอร์ส</a></div></div>
 
 {% if s.pending_slips or s.expiring_7d or s.reviewing_orders %}
 <div class="dash-card mb-3">
@@ -36,7 +36,7 @@
     </ul>
   </div></div>
   <div class="col-12"><div class="dash-card">
-    <div class="d-flex justify-content-between align-items-center mb-2"><h2 class="mb-0 d-flex align-items-center gap-2">{% icon "journal-check" %} กิจกรรมล่าสุด</h2><a href="{% url 'dashboard:audit_list' %}" class="link-dash">ดูทั้งหมด {% icon "plus-lg" %}</a></div>
+    <div class="d-flex justify-content-between align-items-center mb-2"><h2 class="mb-0 d-flex align-items-center gap-2">{% icon "journal-check" %} กิจกรรมล่าสุด</h2><a href="{% url 'dashboard:audit_list' %}" class="link-dash">ดูทั้งหมด {% icon "arrow-right" %}</a></div>
     <ul class="list-unstyled mb-0">
       {% for a in s.recent_activity %}<li class="d-flex flex-wrap gap-2 align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}"><span class="chip">{{ a.action }}</span><span class="fw-medium">{{ a.object_repr|default:a.model }}</span><span class="small text-secondary ms-auto">{% if a.user %}{{ a.user.full_name }}{% else %}{{ a.actor_label|default:"ระบบ" }}{% endif %} · {{ a.created_at|timesince }} ที่แล้ว</span></li>
       {% empty %}<li class="text-secondary small">ยังไม่มีกิจกรรม</li>{% endfor %}
