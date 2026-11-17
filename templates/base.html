@@ -147,10 +147,10 @@
 
 {% if user.is_authenticated %}
 <nav class="tabbar d-md-none" aria-label="เมนูหลัก">
-  <a href="{% url 'courses:list' %}" class="{% if ns == 'courses' %}active{% endif %}">{% icon "grid-1x2" %}<span>คอร์ส</span></a>
-  <a href="{% url 'learning:my_courses' %}" class="{% if name == 'my_courses' or ns == 'learning' and name != 'study' %}active{% endif %}">{% icon "collection-play" %}<span>Dashboard</span></a>
-  <a href="{% url 'learning:study' %}" class="{% if name == 'study' %}active{% endif %}">{% icon "graph-up" %}<span>สถิติ</span></a>
-  <a href="{% url 'accounts:profile' %}" class="{% if ns == 'accounts' %}active{% endif %}">{% icon "person-circle" %}<span>บัญชี</span></a>
+  <a href="{% url 'courses:list' %}" class="{% if ns == 'courses' %}active{% endif %}" {% if ns == 'courses' %}aria-current="page"{% endif %}>{% icon "grid-1x2" %}<span>คอร์ส</span></a>
+  <a href="{% url 'learning:my_courses' %}" class="{% if name == 'my_courses' or ns == 'learning' and name != 'study' %}active{% endif %}" {% if name == 'my_courses' or ns == 'learning' and name != 'study' %}aria-current="page"{% endif %}>{% icon "collection-play" %}<span>เรียน</span></a>
+  <a href="{% url 'learning:study' %}" class="{% if name == 'study' %}active{% endif %}" {% if name == 'study' %}aria-current="page"{% endif %}>{% icon "graph-up" %}<span>สถิติ</span></a>
+  <a href="{% url 'accounts:profile' %}" class="{% if ns == 'accounts' %}active{% endif %}" {% if ns == 'accounts' %}aria-current="page"{% endif %}>{% icon "person-circle" %}<span>บัญชี</span></a>
 </nav>
 {% endif %}
 {% endwith %}
