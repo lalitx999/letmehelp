@@ -21,3 +21,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ไม่เข้า HSTS preload list โดยเจตนา (ถอนออกยากหลายเดือน) — เปิดได้ภายหลังเมื่อ HTTPS เสถียรแล้ว
 SILENCED_SYSTEM_CHECKS = ["security.W021"]
+
+# รันแบบ ASGI: การเชื่อมต่อ DB ค้างข้าม request (CONN_MAX_AGE>0) จะรั่วตามเธรดของ async view
+# จนช่องเชื่อมต่อ PostgreSQL เต็ม → 500 ทั้งเว็บ จึงปิดและเปิด-ปิดต่อ request แทน (ตามคำแนะนำของ Django สำหรับ ASGI)
+DATABASES["default"]["CONN_MAX_AGE"] = 0  # noqa: F405
