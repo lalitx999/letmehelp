@@ -1,0 +1,32 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}นักเรียน{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ผู้ใช้</span><h1 class="h3 mb-0">นักเรียน <span class="text-secondary fs-6 fw-normal">({{ ls.total }})</span></h1></div>
+{% url 'dashboard:student_add' as create_url %}
+{% include "dashboard/_toolbar.html" with placeholder="ชื่อ / อีเมล / เบอร์โทร" create_url=create_url create_label="เพิ่มนักเรียน" filters=filters_ui %}
+<div class="dash-card p-0 table-responsive">
+  <table class="table table-hover align-middle mb-0 table-cards">
+    <thead><tr><th>{% sort_th "name" "ชื่อ" %}</th><th>อีเมล</th><th>เบอร์โทร</th><th class="text-end">{% sort_th "courses" "คอร์ส" %}</th><th>การเรียน</th><th>{% sort_th "joined" "สมัครเมื่อ" %}</th><th>{% sort_th "login" "ล็อกอินล่าสุด" %}</th><th></th></tr></thead>
+    <tbody>
+    {% for u in ls.page.object_list %}
+      <tr class="{% if not u.is_active %}trash-row{% endif %}">
+        <td data-label="ชื่อ"><a href="{% url 'dashboard:student_detail' u.pk %}" class="d-inline-flex align-items-center gap-2 fw-medium"><span class="avatar" style="width:30px;height:30px;font-size:.8rem">{{ u.full_name|initial }}</span>{{ u.full_name }}</a>{% if not u.is_active %} <span class="chip">ปิดบัญชี</span>{% endif %}</td>
+        <td data-label="อีเมล" class="small">{{ u.email }}</td>
+        <td data-label="เบอร์" class="small">{{ u.phone }}</td>
+        <td data-label="คอร์ส" class="text-end">{{ u.course_count }}</td>
+        <td data-label="การเรียน">{% if u.active_count %}<span class="chip is-green">เรียนอยู่ {{ u.active_count }}</span>{% elif u.course_count %}<span class="chip is-orange">หมดอายุ</span>{% else %}<span class="chip">ยังไม่ซื้อ</span>{% endif %}</td>
+        <td data-label="สมัคร" class="small">{{ u.date_joined|date:"j M Y" }}</td>
+        <td data-label="ล็อกอิน" class="small">{{ u.last_login|date:"j M y H:i"|default:"-" }}</td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          <a class="btn btn-sm btn-dark" href="{% url 'dashboard:student_detail' u.pk %}">ดู</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboard:student_edit' u.pk %}" aria-label="แก้ไข">{% icon "pencil-square" %}</a>
+          <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:student_toggle' u.pk %}" {% if u.is_active %}data-confirm="ปิดบัญชีของ {{ u.full_name }}? ข้อมูลทั้งหมดยังอยู่ แต่ล็อกอินไม่ได้ (เปิดคืนได้)" data-danger{% endif %} title="{% if u.is_active %}ปิดบัญชี{% else %}เปิดบัญชี{% endif %}">{% if u.is_active %}{% icon "person-x" %}{% else %}{% icon "person-check" %}{% endif %}</button>
+        </span></td>
+      </tr>
+    {% empty %}<tr><td colspan="8">{% include "dashboard/_empty.html" with text="ไม่พบนักเรียน" icon="people" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "partials/_pagination.html" with page=ls.page %}
+{% endblock %}

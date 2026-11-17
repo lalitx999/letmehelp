@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}คอร์สทั้งหมด — Let Me Help{% endblock %}
+{% block meta_description %}รวมคอร์สภาษาอังกฤษ TGAT A-Level Grammar Vocab Conversation Reading สำหรับน้องมัธยม{% endblock %}
+{% block content %}
+<section class="page-hero is-center">
+  <div class="container">
+    <nav class="crumbs" aria-label="breadcrumb"><a href="{% url 'core:home' %}">หน้าแรก</a> {% icon "chevron-right" %} คอร์สทั้งหมด</nav>
+    <h1><span class="soft">เลือกคอร์สที่ใช่</span> สำหรับสนามสอบของคุณ</h1>
+    <p class="lead-s">จ่ายครั้งเดียว เรียนได้ทั้งปี ดูซ้ำได้ไม่จำกัด พร้อมเอกสารประกอบทุกบท</p>
+    <nav class="seg mt-4" aria-label="หมวดคอร์ส">
+      <a href="{% url 'courses:list' %}" class="{% if not active_category %}on{% endif %}" {% if not active_category %}aria-current="page"{% endif %}>{% icon "grid-1x2" %} ทั้งหมด</a>
+      {% for cat in categories %}{% cat_style cat.slug as st %}
+      <a href="?category={{ cat.slug }}" class="{% if active_category == cat.slug %}on{% endif %}" {% if active_category == cat.slug %}aria-current="page"{% endif %}>{% icon st.1 "" %} {{ cat.name }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+</section>
+<section class="section pt-3">
+  <div class="container">
+    {% if page.object_list %}
+    <div class="row g-4">
+      {% for c in page.object_list %}<div class="col-sm-6 col-lg-4" data-reveal style="--i: {{ forloop.counter0 }}">{% include "partials/_course_card.html" %}</div>{% endfor %}
+    </div>
+    {% include "partials/_pagination.html" %}
+    {% else %}
+    <div class="surface p-5 text-center">
+      <span class="icon-chip lg is-ink mb-3">{% icon "search" %}</span>
+      <h2 class="h5">ยังไม่มีคอร์สในหมวดนี้</h2>
+      <p class="text-secondary">กำลังเตรียมเนื้อหา ลองดูหมวดอื่นก่อนได้</p>
+      <a href="{% url 'courses:list' %}" class="btn btn-primary">ดูคอร์สทั้งหมด</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

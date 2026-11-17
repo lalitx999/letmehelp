@@ -1,0 +1,24 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}ประวัติการแก้ไข{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ระบบ</span><h1 class="h3 mb-0">ประวัติการแก้ไข</h1><div class="small text-secondary">บันทึกว่าใครทำอะไรกับข้อมูลไหนเมื่อไหร่ — แก้หรือลบประวัติไม่ได้</div></div>
+{% include "dashboard/_toolbar.html" with placeholder="ค้นหาชื่อรายการ / ผู้ทำ" filters=filters_ui %}
+<div class="dash-card p-0 table-responsive">
+  <table class="table table-hover align-middle mb-0 table-cards">
+    <thead><tr><th>{% sort_th "time" "เวลา" %}</th><th>ผู้ทำ</th><th>การกระทำ</th><th>ข้อมูล</th><th>รายละเอียด</th></tr></thead>
+    <tbody>
+    {% for a in ls.page.object_list %}
+      <tr>
+        <td data-label="เวลา" class="small text-nowrap">{{ a.created_at|date:"j M y H:i:s" }}</td>
+        <td data-label="ผู้ทำ">{% if a.user %}{{ a.user.full_name }}{% else %}<span class="chip is-blue">{{ a.actor_label|default:"ระบบ" }}</span>{% endif %}</td>
+        <td data-label="การกระทำ"><span class="chip {% if a.action == 'delete' or a.action == 'purge' or a.action == 'revoke' or a.action == 'refund' %}is-red{% elif a.action == 'create' or a.action == 'grant' %}is-green{% elif a.action == 'approve' %}is-blue{% endif %}">{{ a.action }}</span></td>
+        <td data-label="ข้อมูล" class="wrap"><span class="mono text-secondary">{{ a.model }}{% if a.object_id %} #{{ a.object_id }}{% endif %}</span><div>{{ a.object_repr }}</div></td>
+        <td data-label="รายละเอียด" class="wrap small text-secondary">{% for k, v in a.changes.items %}<div><b>{{ k }}</b>: {% if v|length == 2 and v.0 != None %}{{ v.0|default:"∅" }} → {{ v.1|default:"∅" }}{% else %}{{ v }}{% endif %}</div>{% endfor %}</td>
+      </tr>
+    {% empty %}<tr><td colspan="5">{% include "dashboard/_empty.html" with text="ยังไม่มีประวัติ" icon="journal-check" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "partials/_pagination.html" with page=ls.page %}
+{% endblock %}

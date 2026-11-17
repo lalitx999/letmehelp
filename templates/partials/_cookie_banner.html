@@ -1,0 +1,15 @@
+{% load ui %}
+{# แบนเนอร์คุกกี้: JS (consent.js) แสดงเมื่อยังไม่เคยเลือก — ไม่มี JS = ไม่แสดง (ไม่มีคุกกี้ที่ต้องขอความยินยอมนอกเหนือจากที่จำเป็น) #}
+<div class="cookie-banner" id="cookieBanner" role="dialog" aria-modal="false" aria-labelledby="cookieTitle" hidden>
+  <div class="d-flex gap-3 align-items-start">
+    <span class="icon-chip sm is-orange">{% icon "cookie" %}</span>
+    <div class="min-w-0">
+      <div class="fw-medium" id="cookieTitle">เว็บไซต์นี้ใช้คุกกี้</div>
+      <p class="small text-secondary mt-1 mb-3">เราใช้คุกกี้ที่จำเป็นต่อการเข้าสู่ระบบและความปลอดภัย และเล่นวิดีโอบทเรียนผ่าน YouTube เรายังไม่ใช้คุกกี้โฆษณา อ่านรายละเอียดใน<a href="{% url 'core:privacy' %}#cookies">นโยบายความเป็นส่วนตัว</a></p>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-dark btn-sm" data-consent="all">ยอมรับทั้งหมด</button>
+        <button type="button" class="btn btn-outline-dark btn-sm" data-consent="necessary">เฉพาะที่จำเป็น</button>
+      </div>
+    </div>
+  </div>
+</div>

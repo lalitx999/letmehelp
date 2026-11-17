@@ -1,0 +1,24 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}ถังขยะ{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ระบบ</span><h1 class="h3 mb-0">ถังขยะ</h1><div class="small text-secondary">รายการที่ลบจะอยู่ที่นี่ กู้คืนได้ ลบถาวรแล้วกู้ไม่ได้</div></div>
+<div class="dash-card p-0 table-responsive">
+  <table class="table align-middle mb-0 table-cards">
+    <thead><tr><th>ประเภท</th><th>ชื่อ</th><th>ลบเมื่อ</th><th></th></tr></thead>
+    <tbody>
+    {% for t in items %}
+      <tr>
+        <td data-label="ประเภท"><span class="chip">{{ t.label }}</span></td>
+        <td data-label="ชื่อ" class="wrap fw-medium">{{ t.title }}</td>
+        <td data-label="ลบเมื่อ" class="small">{{ t.deleted_at|date:"j M Y H:i" }}</td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          <button class="btn btn-sm btn-dark" data-post-url="{% url 'dashboard:trash_restore' t.kind t.id %}">{% icon "arrow-counterclockwise" %} กู้คืน</button>
+          <button class="btn btn-sm btn-outline-danger" data-post-url="{% url 'dashboard:trash_purge' t.kind t.id %}" data-confirm="ลบ “{{ t.title }}” ถาวร?" data-confirm2="ยืนยันอีกครั้ง: ลบถาวรแล้วจะกู้คืนไม่ได้อีก" data-danger>{% icon "trash3" %} ลบถาวร</button>
+        </span></td>
+      </tr>
+    {% empty %}<tr><td colspan="4">{% include "dashboard/_empty.html" with text="ถังขยะว่างเปล่า" icon="trash3" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

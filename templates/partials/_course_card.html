@@ -1,0 +1,17 @@
+{% load static ui %}{% cat_style c.category.slug as st %}{% course_cover c as cover %}
+<a href="{% url 'courses:detail' c.slug %}" class="course-card">
+  <div class="cover {{ st.0 }} {% if cover %}has-photo{% endif %}">
+    {% if cover %}<img src="{{ cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="big">{% icon st.1 "" %}</span>{% endif %}
+    <span class="tag chip">{{ c.category.name }}</span>
+  </div>
+  <div class="cap">
+    <h3>{{ c.title }}</h3>
+    <span class="mono flex-none">{% if c.promo_active %}<s class="text-secondary me-1">&#3647;{{ c.price|floatformat:"-2" }}</s>{% endif %}&#3647;{{ c.current_price|floatformat:"-2" }}</span>
+  </div>
+  {% if c.subtitle %}<p class="text-secondary small mb-2 px-1 mt-1">{{ c.subtitle }}</p>{% endif %}
+  <div class="meta px-1 mt-auto pt-2">
+    <span>{% icon "clock" %}{{ c.access_days }} วัน</span>
+    <span>{% icon "play-circle" %}{{ c.lesson_count }} คลิป</span>
+    <span>{% icon "infinity" %}ดูซ้ำได้</span>
+  </div>
+</a>

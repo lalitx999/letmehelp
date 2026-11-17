@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}สมัครสมาชิก — Let Me Help{% endblock %}
+{% block content %}
+<div class="container auth">
+  <div class="row g-0 surface overflow-hidden mx-auto" style="max-width: 980px;">
+    <div class="col-lg-5 p-2 p-lg-3">{% include "accounts/_side.html" with image="img/covers/auth-register.jpg" label="เริ่มต้นใช้งาน" heading="สมัครสมาชิกไม่กี่ช่อง ก็เริ่มเรียนได้เลย" %}</div>
+    <div class="col-lg-7">
+      <div class="auth-card">
+        <h1 class="h3 mb-1">สมัครสมาชิก</h1>
+        <p class="text-secondary mb-4">กรอกข้อมูลไม่กี่ช่อง ก็เริ่มเรียนได้เลย</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% if form.non_field_errors %}<div class="state bad mb-3">{% icon "x-circle-fill" %}<div>{{ form.non_field_errors.0 }}</div></div>{% endif %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.full_name.id_for_label }}">ชื่อ-นามสกุล</label>
+            <div class="input-group input-group-lg"><span class="input-group-text">{% icon "person" %}</span>{{ form.full_name }}</div>
+            {% for e in form.full_name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label" for="{{ form.phone.id_for_label }}">เบอร์โทร</label>
+              <div class="input-group input-group-lg"><span class="input-group-text">{% icon "telephone" %}</span>{{ form.phone }}</div>
+              {% for e in form.phone.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-7">
+              <label class="form-label" for="{{ form.email.id_for_label }}">อีเมล</label>
+              <div class="input-group input-group-lg"><span class="input-group-text">{% icon "envelope" %}</span>{{ form.email }}</div>
+              {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.password1.id_for_label }}">รหัสผ่าน</label>
+              <div class="input-group input-group-lg"><span class="input-group-text">{% icon "lock" %}</span>{{ form.password1 }}<button type="button" class="btn btn-light pw-toggle" data-pw-toggle="#{{ form.password1.id_for_label }}" aria-label="แสดงรหัสผ่าน">{% icon "eye" %}</button></div>
+              {% for e in form.password1.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.password2.id_for_label }}">ยืนยันรหัสผ่าน</label>
+              <div class="input-group input-group-lg"><span class="input-group-text">{% icon "lock-fill" %}</span>{{ form.password2 }}</div>
+              {% for e in form.password2.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+          <div class="form-check mb-4">
+            {{ form.accept_terms }}
+            <label class="form-check-label small" for="{{ form.accept_terms.id_for_label }}">ฉันได้อ่านและยอมรับ <a href="{% url 'core:terms' %}" target="_blank" rel="noopener">ข้อกำหนดการใช้งาน</a> และ <a href="{% url 'core:privacy' %}" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a> (ผู้สมัครอายุต่ำกว่า 20 ปี ควรได้รับความยินยอมจากผู้ปกครอง)</label>
+            {% for e in form.accept_terms.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+          </div>
+          <button class="btn btn-primary btn-lg w-100">สมัครสมาชิก {% icon "arrow-right" "icon-arrow" %}</button>
+        </form>
+        <p class="text-center text-secondary mt-4 mb-0">มีบัญชีแล้ว? <a href="{% url 'accounts:login' %}" class="fw-semibold">เข้าสู่ระบบ</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

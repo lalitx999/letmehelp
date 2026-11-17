@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}คู่มือการเรียน — Let Me Help{% endblock %}
+{% block meta_description %}วิธีสมัคร ชำระเงิน เรียน จดโน้ต และต่ออายุคอร์สบน Let Me Help ทีละขั้นตอน{% endblock %}
+{% block content %}
+<section class="page-hero is-center">
+  <div class="container">
+    <nav class="crumbs" aria-label="breadcrumb"><a href="{% url 'core:home' %}">หน้าแรก</a> {% icon "chevron-right" %} คู่มือการเรียน</nav>
+    <h1><span class="soft">คู่มือการเรียน</span> ใช้งานคล่องใน 5 นาที</h1>
+    <p class="lead-s">ตั้งแต่สมัคร ชำระเงิน เรียน จดโน้ต จนถึงต่ออายุคอร์ส</p>
+  </div>
+</section>
+<section class="section pt-3">
+  <div class="container" style="max-width: 880px;">
+    <div class="row g-3 mb-5">
+      {% for ic, color, title, text in tips %}
+      <div class="col-md-6" data-reveal style="--i: {{ forloop.counter0 }}">
+        <div class="surface p-4 h-100 d-flex gap-3 hover-lift"><span class="icon-chip {{ color }}">{% icon ic "" %}</span><div><h2 class="h6 mb-1">{{ title }}</h2><p class="text-secondary small mb-0">{{ text }}</p></div></div>
+      </div>
+      {% endfor %}
+    </div>
+    <h2 class="h4 mb-3">คำถามที่พบบ่อย</h2>
+    <div class="accordion is-cards" id="faqList">
+      {% for q, a in faqs %}
+      <div class="accordion-item">
+        <h3 class="accordion-header"><button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#g{{ forloop.counter }}">{{ q }}</button></h3>
+        <div id="g{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#faqList"><div class="accordion-body text-secondary">{{ a }}</div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

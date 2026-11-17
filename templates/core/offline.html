@@ -1,0 +1,22 @@
+{% load static %}<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ออฟไลน์ — Let Me Help</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+{# หน้านี้ถูก cache ไว้ใน service worker ให้ทุกคนใช้ร่วมกัน จึงห้ามมีข้อมูลผู้ใช้/ปุ่มที่ต้องล็อกอิน #}
+<body>
+<main class="container d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 100vh; max-width: 30rem;">
+  <img src="{% static 'img/logo.png' %}" alt="Let Me Help" height="56" class="mb-4">
+  <span class="lbl d-block mb-2">( ออฟไลน์ )</span>
+  <h1 class="h3 mb-2">ไม่มีสัญญาณอินเทอร์เน็ต</h1>
+  <p class="text-secondary mb-4">วิดีโอและข้อมูลการเรียนต้องใช้อินเทอร์เน็ต ตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง ความคืบหน้าที่เรียนไว้ไม่หาย</p>
+  <button class="btn btn-dark btn-lg" onclick="location.reload()">ลองใหม่</button>
+</main>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{% load ui %}
+{# พารามิเตอร์: ls (ListState), placeholder, filters (รายการ (ชื่อ, ป้าย, [(ค่า, ป้าย)...])), create_url, create_label, modal (ใส่ถ้าปุ่มเพิ่มเปิดเป็น modal) #}
+<form method="get" class="list-toolbar" role="search">
+  <div class="input-group search-box">
+    <span class="input-group-text">{% icon "search" %}</span>
+    <input class="form-control" name="q" value="{{ ls.q }}" placeholder="{{ placeholder|default:'ค้นหา' }}" data-search aria-label="ค้นหา">
+  </div>
+  {% for name, label, options in filters %}
+  <select name="{{ name }}" class="form-select filter-select" aria-label="{{ label }}" onchange="this.form.submit()">
+    <option value="">{{ label }}: ทั้งหมด</option>
+    {% for value, text in options %}<option value="{{ value }}" {% if ls.filters|get_item:name == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+  {% endfor %}
+  {% if ls.sort %}<input type="hidden" name="sort" value="{{ ls.sort }}">{% endif %}
+  <button class="btn btn-dark d-none d-md-inline-flex">ค้นหา</button>
+  {% if ls.q or ls.filters %}<a href="?" class="btn btn-light">ล้าง</a>{% endif %}
+  {% if create_url %}
+    {% if modal %}<button type="button" class="btn btn-dark ms-md-auto" data-modal-url="{{ create_url }}">{% icon "plus-lg" %} {{ create_label|default:"เพิ่ม" }}</button>
+    {% else %}<a href="{{ create_url }}" class="btn btn-dark ms-md-auto">{% icon "plus-lg" %} {{ create_label|default:"เพิ่ม" }}</a>{% endif %}
+  {% endif %}
+</form>

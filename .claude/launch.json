@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "letmehelp",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": [
+        "manage.py",
+        "runserver",
+        "8000"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "letmehelp-8010",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": [
+        "manage.py",
+        "runserver",
+        "8010"
+      ],
+      "port": 8010
+    }
+  ]
+}

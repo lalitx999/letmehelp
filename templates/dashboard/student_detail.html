@@ -1,0 +1,62 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}{{ s.full_name }}{% endblock %}
+{% block dash_content %}
+<a href="{% url 'dashboard:student_list' %}" class="crumbs">{% icon "arrow-left" %} นักเรียนทั้งหมด</a>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-1 mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <span class="avatar" style="width:60px;height:60px;font-size:1.5rem">{{ s.full_name|initial }}</span>
+    <div><h1 class="h3 mb-0">{{ s.full_name }} {% if not s.is_active %}<span class="chip">ปิดบัญชี</span>{% endif %}</h1>
+      <div class="small text-secondary">{{ s.email }} · {{ s.phone }} · สมัคร {{ s.date_joined|date:"j M Y" }} · ล็อกอินล่าสุด {{ s.last_login|date:"j M Y H:i"|default:"ยังไม่เคย" }}</div></div>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'dashboard:student_edit' s.pk %}" class="btn btn-outline-dark btn-sm">{% icon "pencil-square" %} แก้ไข</a>
+    <button class="btn btn-outline-dark btn-sm" data-modal-url="{% url 'dashboard:user_password' s.pk %}">{% icon "key" %} รีเซ็ตรหัสผ่าน</button>
+    <button class="btn btn-dark btn-sm" data-modal-url="{% url 'dashboard:enrollment_grant' %}?email={{ s.email|urlencode }}">{% icon "plus-lg" %} มอบสิทธิ์เรียน</button>
+    <button class="btn btn-outline-secondary btn-sm" data-post-url="{% url 'dashboard:student_toggle' s.pk %}" {% if s.is_active %}data-confirm="ปิดบัญชีของ {{ s.full_name }}? ข้อมูลยังอยู่ แต่ล็อกอินไม่ได้" data-danger{% endif %}>{% if s.is_active %}{% icon "person-x" %} ปิดบัญชี{% else %}{% icon "person-check" %} เปิดบัญชี{% endif %}</button>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="stat dash-card"><span class="icon-chip is-blue">{% icon "clock-history" %}</span><div><div class="num">{{ stats.total_seconds|hours_minutes }}</div><div class="lbl-s">เวลาเรียนรวม</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat dash-card"><span class="icon-chip is-orange">{% icon "fire" %}</span><div><div class="num">{{ stats.streak }} วัน</div><div class="lbl-s">เรียนต่อเนื่อง (สูงสุด {{ stats.longest_streak }})</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat dash-card"><span class="icon-chip is-green">{% icon "check-circle" %}</span><div><div class="num">{{ stats.completed_lessons }}</div><div class="lbl-s">คลิปที่เรียนจบ</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat dash-card"><span class="icon-chip is-red">{% icon "calendar-check" %}</span><div><div class="num">{{ stats.study_days }}</div><div class="lbl-s">วันที่เข้าเรียน</div></div></div></div>
+</div>
+
+{% if s.admin_note %}<div class="state info mb-3">{% icon "journal-text" %}<div><b>โน้ตแอดมิน</b><br>{{ s.admin_note }}</div></div>{% endif %}
+
+<div class="dash-card p-0 mb-3 table-responsive">
+  <div class="p-3 pb-2"><h2 class="mb-0 d-flex align-items-center gap-2">{% icon "collection-play" %} สิทธิ์เรียน</h2></div>
+  <table class="table align-middle mb-0 table-cards">
+    <thead><tr><th>คอร์ส</th><th>สถานะ</th><th>หมดอายุ</th><th>ที่มา</th><th></th></tr></thead>
+    <tbody>
+    {% for e in enrollments %}
+      <tr>
+        <td data-label="คอร์ส" class="wrap fw-medium">{{ e.course.title }}{% if e.note %}<div class="small text-secondary fw-normal">{{ e.note }}</div>{% endif %}</td>
+        <td data-label="สถานะ">{% if e.status == 'cancelled' %}<span class="chip">ยกเลิก</span>{% elif e.status == 'expired' or e.expires_at < now %}<span class="chip is-red">หมดอายุ</span>{% else %}<span class="chip is-green">เรียนอยู่</span>{% endif %}</td>
+        <td data-label="หมดอายุ" class="small">{% if e.expires_at.year > 2100 %}ตลอดชีพ{% else %}{{ e.expires_at|date:"j M Y" }}{% endif %}</td>
+        <td data-label="ที่มา" class="small">{{ e.get_source_display }}</td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:enrollment_extend' e.pk %}">{% icon "clock" %} ปรับวัน</button>
+          {% if e.status == 'cancelled' %}<button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:enrollment_restore' e.pk %}">{% icon "arrow-counterclockwise" %} กู้คืน</button>
+          {% else %}<button class="btn btn-sm btn-outline-danger" data-post-url="{% url 'dashboard:enrollment_revoke' e.pk %}" data-confirm="ยกเลิกสิทธิ์เรียน {{ e.course.title }} ของ {{ s.full_name }}?" data-danger>{% icon "x-circle" %} ยกเลิก</button>{% endif %}
+        </span></td>
+      </tr>
+    {% empty %}<tr><td colspan="5">{% include "dashboard/_empty.html" with text="ยังไม่มีสิทธิ์เรียน" hint="กด มอบสิทธิ์เรียน เพื่อเพิ่ม" icon="collection-play" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="dash-card p-0 table-responsive">
+  <div class="p-3 pb-2"><h2 class="mb-0 d-flex align-items-center gap-2">{% icon "wallet2" %} ออเดอร์ล่าสุด</h2></div>
+  <table class="table align-middle mb-0 table-cards">
+    <thead><tr><th>#</th><th>วันที่</th><th>คอร์ส</th><th class="text-end">ยอด</th><th>สถานะ</th></tr></thead>
+    <tbody>
+    {% for o in orders %}
+      <tr><td data-label="#"><a href="{% url 'dashboard:order_detail' o.pk %}" class="fw-medium">#{{ o.pk }}</a></td><td data-label="วันที่" class="small">{{ o.created_at|date:"j M y H:i" }}</td><td data-label="คอร์ส" class="wrap">{{ o.course.title }}</td><td data-label="ยอด" class="text-end">฿{{ o.amount|floatformat:"-2" }}</td><td data-label="สถานะ">{% include "dashboard/_order_status.html" with o=o %}</td></tr>
+    {% empty %}<tr><td colspan="5" class="text-secondary text-center py-4">ยังไม่มีออเดอร์</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

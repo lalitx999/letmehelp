@@ -1,0 +1,164 @@
+{% load static ui %}<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}Let Me Help — มานี่เดี๋ยวพี่สอน{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT / A-Level สำหรับน้องมัธยม เรียนได้ทุกที่ทุกเวลา ดูย้อนหลังได้ พร้อมเอกสารประกอบ{% endblock %}">
+  <link rel="canonical" href="{{ SITE_URL }}{{ request.path }}">
+  <meta property="og:site_name" content="{{ SITE_NAME }}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Let Me Help — มานี่เดี๋ยวพี่สอน{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT / A-Level{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ SITE_URL }}{% static 'img/icon-512.png' %}{% endblock %}">
+  {% block extra_meta %}{% endblock %}
+  <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href="{% url 'core:manifest' %}">
+  <link rel="icon" href="{% static 'img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Let Me Help">
+  <link rel="preload" href="{% static 'fonts/Sarabun-Regular.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <script>document.documentElement.classList.add("js");</script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body data-icons="{% static 'vendor/bootstrap-icons/icons.svg' %}" class="{% block body_class %}{% if user.is_authenticated %}has-tabbar{% endif %}{% endblock %}">
+{% block body %}
+{% with ns=request.resolver_match.namespace name=request.resolver_match.url_name %}
+{% if ANNOUNCEMENT %}<div class="announce">{{ ANNOUNCEMENT }}</div>{% endif %}
+<nav class="site-nav" id="siteNav">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a class="navbar-brand" href="{% url 'core:home' %}" aria-label="{{ SITE_NAME }}"><img src="{% static 'img/logo.png' %}" alt="{{ SITE_NAME }}"></a>
+    <ul class="nav-inline d-none d-lg-flex me-auto">
+      <li><a class="nav-link {% if ns == 'courses' %}active{% endif %}" href="{% url 'courses:list' %}">คอร์สทั้งหมด</a></li>
+      <li><a class="nav-link {% if name == 'free_trial' %}active{% endif %}" href="{% url 'core:free_trial' %}">ทดลองเรียนฟรี</a></li>
+      <li><a class="nav-link {% if name == 'guide' %}active{% endif %}" href="{% url 'core:guide' %}">คู่มือการเรียน</a></li>
+      {% if user.is_authenticated %}
+      <li><a class="nav-link {% if name == 'my_courses' or ns == 'learning' and name != 'study' %}active{% endif %}" href="{% url 'learning:my_courses' %}">Dashboard</a></li>
+      <li><a class="nav-link {% if name == 'study' %}active{% endif %}" href="{% url 'learning:study' %}">สถิติการเรียน</a></li>
+      {% endif %}
+    </ul>
+    <div class="d-none d-lg-flex align-items-center gap-2">
+      {% if user.is_authenticated %}
+        {% if user.is_staff %}<a class="btn btn-outline-dark btn-sm" href="{% url 'dashboard:overview' %}">{% icon "speedometer2" %} หลังบ้าน</a>{% endif %}
+        <div class="dropdown">
+          <button class="btn btn-light btn-sm d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="avatar" style="width:26px;height:26px;font-size:.78rem">{{ user.full_name|initial }}</span><span>{{ user.get_short_name }}</span>{% icon "chevron-down" %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="px-3 py-2 small text-secondary">{{ user.email }}</li>
+            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">{% icon "person" %} ข้อมูลของฉัน</a></li>
+            <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="dropdown-item">{% icon "box-arrow-right" %} ออกจากระบบ</button></form></li>
+          </ul>
+        </div>
+      {% else %}
+        <a class="btn btn-link" href="{% url 'accounts:login' %}">เข้าสู่ระบบ</a>
+        <a class="btn btn-dark" href="{% url 'accounts:register' %}">สมัครเรียน <span class="btn-circle">{% icon "arrow-up-right" %}</span></a>
+      {% endif %}
+    </div>
+    <button class="menu-btn d-lg-none" id="menuBtn" type="button" aria-expanded="false" aria-controls="menuOverlay" aria-label="เมนู"></button>
+  </div>
+</nav>
+
+<div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+  <div class="container">
+    <nav aria-label="เมนูหลัก">
+      <a href="{% url 'core:home' %}" class="{% if name == 'home' %}active{% endif %}" style="--i:0"><span class="mono">( _01 )</span>หน้าแรก</a>
+      <a href="{% url 'courses:list' %}" class="{% if ns == 'courses' %}active{% endif %}" style="--i:1"><span class="mono">( _02 )</span>คอร์สทั้งหมด</a>
+      <a href="{% url 'core:free_trial' %}" class="{% if name == 'free_trial' %}active{% endif %}" style="--i:2"><span class="mono">( _03 )</span>ทดลองเรียนฟรี</a>
+      <a href="{% url 'core:guide' %}" class="{% if name == 'guide' %}active{% endif %}" style="--i:3"><span class="mono">( _04 )</span>คู่มือการเรียน</a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'learning:my_courses' %}" class="{% if name == 'my_courses' or ns == 'learning' and name != 'study' %}active{% endif %}" style="--i:4"><span class="mono">( _05 )</span>Dashboard</a>
+      <a href="{% url 'learning:study' %}" class="{% if name == 'study' %}active{% endif %}" style="--i:5"><span class="mono">( _06 )</span>สถิติการเรียน</a>
+      {% endif %}
+    </nav>
+    <div class="menu-foot">
+      {% if user.is_authenticated %}
+        <div class="d-flex align-items-center gap-3 mb-3"><span class="avatar">{{ user.full_name|initial }}</span><div class="lh-sm"><div class="fw-medium">{{ user.full_name }}</div><div class="small text-secondary">{{ user.email }}</div></div></div>
+        <div class="d-flex flex-wrap gap-2">
+          {% if user.is_staff %}<a class="btn btn-outline-dark" href="{% url 'dashboard:overview' %}">{% icon "speedometer2" %} ระบบหลังบ้าน</a>{% endif %}
+          <a class="btn btn-outline-dark" href="{% url 'accounts:profile' %}">{% icon "person" %} ข้อมูลของฉัน</a>
+          <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-dark">{% icon "box-arrow-right" %} ออกจากระบบ</button></form>
+        </div>
+      {% else %}
+        <div class="d-grid gap-2">
+          <a class="btn btn-dark btn-lg" href="{% url 'accounts:register' %}">สมัครเรียน <span class="btn-circle">{% icon "arrow-up-right" %}</span></a>
+          <a class="btn btn-outline-dark btn-lg" href="{% url 'accounts:login' %}">เข้าสู่ระบบ</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if messages %}
+<div class="container mt-3">
+  {% for m in messages %}
+  <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show d-flex align-items-start gap-2 border-0" style="border-radius: 20px;" role="alert">
+    {% if m.tags == 'success' %}{% icon "check-circle-fill" "icon-lg" %}{% elif m.tags == 'danger' %}{% icon "x-circle-fill" "icon-lg" %}{% elif m.tags == 'warning' %}{% icon "exclamation-triangle" "icon-lg" %}{% else %}{% icon "info-circle" "icon-lg" %}{% endif %}
+    <div class="flex-grow-1">{{ m }}</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="ปิด"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main>{% block content %}{% endblock %}</main>
+
+{% block footer %}
+<footer class="site-footer">
+  <div class="container">
+    <div class="row gx-lg-5 gy-4 pb-4">
+      <div class="col-lg-4">
+        <a href="{% url 'core:home' %}" aria-label="{{ SITE_NAME }}"><img src="{% static 'img/logo.png' %}" alt="{{ SITE_NAME }}" height="48" class="mb-3"></a>
+        <p class="foot-about">คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT / A-Level สำหรับน้องมัธยม เรียนได้ทุกที่ ดูย้อนหลังได้ พร้อมเอกสารประกอบ</p>
+        {% if SOCIAL_LINKS or LINE_CONTACT_URL or CONTACT_EMAIL %}
+        <ul class="social-list" aria-label="ช่องทางติดตาม">
+          {% for s in SOCIAL_LINKS %}<li><a class="social" href="{{ s.url }}" target="_blank" rel="noopener noreferrer me" aria-label="{{ s.label }}" title="{{ s.label }}">{% icon s.icon "" %}</a></li>{% endfor %}
+          {% if LINE_CONTACT_URL %}<li><a class="social" href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener noreferrer" aria-label="LINE" title="LINE">{% icon "line" "" %}</a></li>{% endif %}
+          {% if CONTACT_EMAIL %}<li><a class="social" href="mailto:{{ CONTACT_EMAIL }}" aria-label="อีเมล" title="อีเมล">{% icon "envelope" "" %}</a></li>{% endif %}
+        </ul>
+        {% endif %}
+        <button type="button" class="btn btn-outline-dark btn-sm mt-3" data-pwa-install hidden>{% icon "download" %} ติดตั้งแอปบนมือถือ</button>
+        <p class="small text-secondary mt-2 mb-0" data-pwa-ios hidden>บน iPhone: แตะปุ่มแชร์ {% icon "box-arrow-up" %} แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”</p>
+      </div>
+      <div class="col-6 col-md-3 col-lg-2"><h4>เรียน</h4><ul><li><a href="{% url 'courses:list' %}">คอร์สทั้งหมด</a></li><li><a href="{% url 'core:free_trial' %}">ทดลองเรียนฟรี</a></li><li><a href="{% url 'core:guide' %}">คู่มือการเรียน</a></li></ul></div>
+      <div class="col-6 col-md-3 col-lg-2"><h4>บัญชี</h4><ul>{% if user.is_authenticated %}<li><a href="{% url 'learning:my_courses' %}">Dashboard</a></li><li><a href="{% url 'learning:study' %}">สถิติการเรียน</a></li><li><a href="{% url 'accounts:profile' %}">ข้อมูลของฉัน</a></li>{% else %}<li><a href="{% url 'accounts:login' %}">เข้าสู่ระบบ</a></li><li><a href="{% url 'accounts:register' %}">สมัครสมาชิก</a></li>{% endif %}</ul></div>
+      <div class="col-6 col-md-3 col-lg-2"><h4>ช่วยเหลือ</h4><ul>
+        {% if LINE_CONTACT_URL %}<li><a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener">ทักถามทาง LINE</a></li>{% endif %}
+        {% if CONTACT_EMAIL %}<li><a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a></li>{% endif %}
+        <li><a href="{% url 'core:guide' %}">วิธีชำระเงินและเข้าเรียน</a></li>
+      </ul></div>
+      <div class="col-6 col-md-3 col-lg-2"><h4>กฎหมาย</h4><ul><li><a href="{% url 'core:privacy' %}">นโยบายความเป็นส่วนตัว</a></li><li><a href="{% url 'core:terms' %}">ข้อกำหนดการใช้งาน</a></li><li><a href="#" data-cookie-settings>ตั้งค่าคุกกี้</a></li></ul></div>
+    </div>
+    <div class="foot-bar">
+      <span>&copy; {% now "Y" %} {{ SITE_NAME }}&reg; สงวนลิขสิทธิ์</span>
+      <span class="d-inline-flex align-items-center gap-2">{% icon "qr-code" %} รับชำระผ่าน PromptPay</span>
+    </div>
+  </div>
+</footer>
+{% endblock %}
+
+{% include "partials/_chat_widget.html" %}
+{% include "partials/_cookie_banner.html" %}
+
+{% if user.is_authenticated %}
+<nav class="tabbar d-md-none" aria-label="เมนูหลัก">
+  <a href="{% url 'courses:list' %}" class="{% if ns == 'courses' %}active{% endif %}">{% icon "grid-1x2" %}<span>คอร์ส</span></a>
+  <a href="{% url 'learning:my_courses' %}" class="{% if name == 'my_courses' or ns == 'learning' and name != 'study' %}active{% endif %}">{% icon "collection-play" %}<span>Dashboard</span></a>
+  <a href="{% url 'learning:study' %}" class="{% if name == 'study' %}active{% endif %}">{% icon "graph-up" %}<span>สถิติ</span></a>
+  <a href="{% url 'accounts:profile' %}" class="{% if ns == 'accounts' %}active{% endif %}">{% icon "person-circle" %}<span>บัญชี</span></a>
+</nav>
+{% endif %}
+{% endwith %}
+{% endblock %}
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/site.js' %}"></script>
+<script src="{% static 'js/chat.js' %}" defer></script>
+<script src="{% static 'js/consent.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

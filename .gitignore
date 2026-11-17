@@ -1,0 +1,16 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+staticfiles/
+media/
+private_media/
+logs/
+.DS_Store
+db.sqlite3
+.seed_credentials
+
+# เอกสารลูกค้า/สัญญาที่โฟลเดอร์หลัก — ห้ามเข้า git
+/*.pdf
+# ไฟล์ดาวน์โหลด Bootstrap ซ้ำกับ static/vendor/bootstrap
+/bootstrap-5.3.8-dist/

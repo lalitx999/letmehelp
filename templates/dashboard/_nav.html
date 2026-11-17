@@ -1,0 +1,20 @@
+{% load ui %}{% with name=request.resolver_match.url_name %}
+<ul class="nav flex-column gap-1">
+  <li><a class="nav-link {% if name == 'overview' %}active{% endif %}" href="{% url 'dashboard:overview' %}">{% icon "speedometer2" %} ภาพรวม</a></li>
+  <li class="nav-group">การสอน</li>
+  <li><a class="nav-link {% if 'course' in name or 'lesson' in name or 'section' in name or 'attachment' in name or 'package' in name %}active{% endif %}" href="{% url 'dashboard:course_list' %}">{% icon "collection-play" %} คอร์ส</a></li>
+  <li><a class="nav-link {% if 'category' in name %}active{% endif %}" href="{% url 'dashboard:category_list' %}">{% icon "tags" %} หมวดคอร์ส</a></li>
+  <li class="nav-group">ผู้ใช้</li>
+  <li><a class="nav-link {% if 'student' in name or name == 'user_password' %}active{% endif %}" href="{% url 'dashboard:student_list' %}">{% icon "people" %} นักเรียน</a></li>
+  <li><a class="nav-link {% if 'enrollment' in name %}active{% endif %}" href="{% url 'dashboard:enrollment_list' %}">{% icon "clock-history" %} สิทธิ์เรียน</a></li>
+  <li class="nav-group">การเงิน</li>
+  <li><a class="nav-link {% if 'order' in name %}active{% endif %}" href="{% url 'dashboard:order_list' %}">{% icon "wallet2" %} ออเดอร์</a></li>
+  <li><a class="nav-link {% if 'slip' in name %}active{% endif %}" href="{% url 'dashboard:slip_list' %}">{% icon "receipt" %} ตรวจสลิป</a></li>
+  <li><a class="nav-link {% if 'export' in name %}active{% endif %}" href="{% url 'dashboard:exports' %}">{% icon "file-earmark-bar-graph" %} รายงาน</a></li>
+  <li class="nav-group">ระบบ</li>
+  <li><a class="nav-link {% if 'admin' in name %}active{% endif %}" href="{% url 'dashboard:admin_list' %}">{% icon "person-gear" %} ผู้ดูแลระบบ</a></li>
+  <li><a class="nav-link {% if name == 'site_settings' %}active{% endif %}" href="{% url 'dashboard:site_settings' %}">{% icon "gear" %} ตั้งค่าเว็บ</a></li>
+  <li><a class="nav-link {% if name == 'audit_list' %}active{% endif %}" href="{% url 'dashboard:audit_list' %}">{% icon "journal-check" %} ประวัติการแก้ไข</a></li>
+  <li><a class="nav-link {% if 'trash' in name %}active{% endif %}" href="{% url 'dashboard:trash' %}">{% icon "trash3" %} ถังขยะ</a></li>
+</ul>
+{% endwith %}

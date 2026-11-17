@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}สิทธิ์เรียน{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ผู้ใช้</span><h1 class="h3 mb-0">สิทธิ์เรียน <span class="text-secondary fs-6 fw-normal">({{ ls.total }})</span></h1>
+  <div class="small text-secondary">ระบบส่งอีเมลเตือนอัตโนมัติก่อนหมดอายุ และส่งเตือนเพิ่มเองได้ที่นี่</div></div>
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% for key, label, ic in tabs %}<a href="?tab={{ key }}" class="btn btn-sm {% if tab == key %}btn-dark{% else %}btn-outline-dark{% endif %}">{% icon ic "" %} {{ label }}</a>{% endfor %}
+</div>
+<form method="get" class="list-toolbar" role="search">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <div class="input-group search-box"><span class="input-group-text">{% icon "search" %}</span><input class="form-control" name="q" value="{{ ls.q }}" placeholder="นักเรียน / อีเมล / คอร์ส" data-search></div>
+  <button class="btn btn-dark d-none d-md-inline-flex">ค้นหา</button>
+  <button type="button" class="btn btn-dark ms-md-auto" data-modal-url="{% url 'dashboard:enrollment_grant' %}">{% icon "plus-lg" %} มอบสิทธิ์เรียน</button>
+</form>
+<div class="dash-card p-0 table-responsive">
+  <table class="table table-hover align-middle mb-0 table-cards">
+    <thead><tr><th style="width:36px"><input type="checkbox" class="form-check-input" data-bulk-all aria-label="เลือกทั้งหมด"></th><th>{% sort_th "student" "นักเรียน" %}</th><th>คอร์ส</th><th>สถานะ</th><th>{% sort_th "expires" "หมดอายุ" %}</th><th>ที่มา</th><th></th></tr></thead>
+    <tbody>
+    {% for e in ls.page.object_list %}
+      <tr>
+        <td class="no-label"><input type="checkbox" class="form-check-input" data-bulk-id="{{ e.pk }}" aria-label="เลือก"></td>
+        <td data-label="นักเรียน"><a href="{% url 'dashboard:student_detail' e.user.pk %}" class="fw-medium">{{ e.user.full_name }}</a><div class="small text-secondary">{{ e.user.email }}</div></td>
+        <td data-label="คอร์ส" class="wrap">{{ e.course.title }}</td>
+        <td data-label="สถานะ">{% if e.status == 'cancelled' %}<span class="chip">ยกเลิก</span>{% elif e.status == 'expired' or e.expires_at < now %}<span class="chip is-red">{% icon "exclamation-circle" %} หมดอายุ</span>{% else %}<span class="chip {% if e.expires_at|timeuntil|slice:':2' < '8' %}is-orange{% else %}is-green{% endif %}">{% icon "clock" %} {{ e.expires_at|timeuntil }}</span>{% endif %}</td>
+        <td data-label="หมดอายุ" class="small text-nowrap">{% if e.expires_at.year > 2100 %}ตลอดชีพ{% else %}{{ e.expires_at|date:"j M Y" }}{% endif %}</td>
+        <td data-label="ที่มา" class="small">{{ e.get_source_display }}{% if e.note %}<div class="text-secondary">{{ e.note|truncatechars:30 }}</div>{% endif %}</td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          <button class="btn btn-sm btn-dark" data-post-url="{% url 'dashboard:enrollment_remind' e.pk %}" title="ส่งอีเมลเตือน">{% icon "envelope" %}</button>
+          <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:enrollment_extend' e.pk %}" title="ปรับวันหมดอายุ">{% icon "clock" %}</button>
+          {% if e.status == 'cancelled' %}<button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:enrollment_restore' e.pk %}" title="กู้คืน">{% icon "arrow-counterclockwise" %}</button>
+          {% else %}<button class="btn btn-sm btn-outline-danger" data-post-url="{% url 'dashboard:enrollment_revoke' e.pk %}" data-confirm="ยกเลิกสิทธิ์เรียน {{ e.course.title }} ของ {{ e.user.full_name }}?" data-danger title="ยกเลิกสิทธิ์">{% icon "x-circle" %}</button>{% endif %}
+        </span></td>
+      </tr>
+    {% empty %}<tr><td colspan="7">{% include "dashboard/_empty.html" with text="ไม่มีรายการ" icon="clock-history" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="bulk-bar" id="bulkBar" hidden><span>เลือก <b data-bulk-count>0</b> รายการ</span>
+  <button class="btn btn-sm btn-light" data-bulk-url="{% url 'dashboard:enrollment_bulk' %}" data-bulk-action="remind" data-confirm="ส่งอีเมลเตือนต่ออายุ {n} รายการ?">{% icon "envelope" %} ส่งอีเมลเตือน</button></div>
+{% include "partials/_pagination.html" with page=ls.page %}
+{% endblock %}

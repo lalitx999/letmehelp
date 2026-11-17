@@ -1,0 +1,13 @@
+{% load static ui %}
+<div class="auth-photo">
+  <img src="{% static image %}" alt="" loading="eager">
+  <div class="auth-photo-cap d-none d-lg-block">
+    <span class="lbl d-block mb-2">{{ label }}</span>
+    <p class="mb-3 fw-medium">{{ heading }}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="chip is-blue">{% icon "collection-play" %} ดูย้อนหลังได้</span>
+      <span class="chip is-orange">{% icon "bookmark-check" %} จำที่เรียนค้าง</span>
+      <span class="chip is-green">{% icon "journal-text" %} สมุดโน้ต</span>
+    </div>
+  </div>
+</div>

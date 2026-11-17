@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static ui %}
+{% block title %}Dashboard — Let Me Help{% endblock %}
+{% block content %}
+<!-- Header: ข้อมูลผู้เรียน + ปุ่มหลักด้านขวา (ตำแหน่งแบบเดียวกับแดชบอร์ดของ ryu_new) -->
+<section class="page-hero">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <span class="avatar" style="width:68px;height:68px;font-size:1.6rem;background:var(--night);color:#fff;box-shadow:var(--shadow-md)">{{ user.full_name|initial }}</span>
+      <div>
+        <span class="small text-secondary">สวัสดี</span>
+        <h1 class="h2 my-0" style="font-size:clamp(1.6rem,3.5vw,2.2rem)">{{ user.full_name }}</h1>
+        <div class="small text-secondary">{{ user.email }} · {{ user.phone }}</div>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="chip {% if active_count %}is-green{% endif %}">{% icon "mortarboard" %} {% if active_count %}กำลังเรียน {{ active_count }} คอร์ส{% else %}ยังไม่มีคอร์สที่เรียนอยู่{% endif %}</span>
+      <a href="{% url 'courses:list' %}" class="btn btn-dark">{% icon "plus-lg" %} เลือกคอร์สเพิ่ม / ต่ออายุ</a>
+    </div>
+  </div>
+</section>
+
+<div class="container section pt-2">
+  <div class="row g-4">
+    <!-- คอลัมน์หลัก: เรียนต่อ + Dashboard -->
+    <div class="col-lg-8">
+      {% for o in waiting_orders %}
+      <div class="state {% if o.status == 'rejected' %}bad{% else %}info{% endif %} mb-3 align-items-center">
+        {% if o.status == 'rejected' %}{% icon "x-circle-fill" %}{% else %}{% icon "hourglass-split" %}{% endif %}
+        <div class="flex-grow-1"><b>{{ o.course.title }}</b> — {{ o.get_status_display }}</div>
+        <a class="btn btn-sm btn-dark" href="{% url 'payments:checkout' o.course.slug %}">{% if o.status == 'rejected' %}ส่งสลิปใหม่{% else %}ดูสถานะ{% endif %}</a>
+      </div>
+      {% endfor %}
+
+      {% if continue_item %}
+      <div class="continue-card mb-4" data-reveal>
+        <span class="icon-chip lg">{% icon "play-circle" %}</span>
+        <div class="flex-grow-1" style="min-width: 220px;">
+          <span class="lbl d-block mb-1">เรียนต่อจากที่ค้างไว้</span>
+          <div class="fw-medium">{{ continue_item.lesson.title }}</div>
+          <div class="small">{{ continue_item.lesson.section.course.title }}{% if continue_item.last_position %} · ค้างที่ {{ continue_item.last_position|hms }}{% endif %}</div>
+        </div>
+        <a href="{% url 'learning:player_lesson' continue_item.lesson.section.course.slug continue_item.lesson.pk %}" class="btn btn-dark">เรียนต่อ {% icon "arrow-right" "icon-arrow" %}</a>
+      </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between align-items-end mb-3" data-reveal>
+        <h2 class="h3 mb-0">คอร์สของฉัน</h2>
+        <a href="{% url 'courses:list' %}" class="link-dash">ดูคอร์สทั้งหมด {% icon "arrow-right" %}</a>
+      </div>
+      {% if enrollments %}
+      <div class="row g-3">
+        {% for e in enrollments %}{% cat_style e.course.category.slug as st %}{% course_cover e.course as cover %}
+        <div class="col-md-6" data-reveal style="--i: {{ forloop.counter0 }}">
+          <div class="surface h-100 d-flex flex-column overflow-hidden hover-lift">
+            <div class="cover {{ st.0 }} {% if cover %}has-photo{% endif %}" style="border-radius: calc(var(--r-md) - 6px); aspect-ratio: 16 / 9; margin: .5rem .5rem 0;">
+              {% if cover %}<img src="{{ cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="big">{% icon st.1 "" %}</span>{% endif %}
+              <span class="tag chip">{{ e.course.category.name }}</span>
+            </div>
+            <div class="p-3 p-lg-4 d-flex flex-column flex-grow-1">
+              <div class="d-flex gap-3 align-items-center mb-3">
+                {% include "partials/_ring.html" with percent=e.percent ring_class="" %}
+                <div class="min-w-0"><h3 class="h5 mb-0">{{ e.course.title }}</h3><div class="small text-secondary">เรียนแล้ว {{ e.percent }}%</div></div>
+              </div>
+              <div class="mb-3">
+                {% if e.is_active %}
+                  <span class="chip {% if e.days_left <= 14 %}is-orange{% else %}is-green{% endif %}">{% icon "clock" %} {% if e.days_left > 3650 %}ตลอดชีพ{% else %}เหลือ {{ e.days_left }} วัน{% endif %}</span>
+                  {% if e.days_left <= 3650 %}<span class="small text-secondary ms-1">ถึง {{ e.expires_at|date:"j M Y" }}</span>{% endif %}
+                {% else %}
+                  <span class="chip is-red">{% icon "exclamation-circle" %} หมดอายุ {{ e.expires_at|date:"j M Y" }}</span>
+                {% endif %}
+              </div>
+              <div class="mt-auto d-grid gap-2">
+                {% if e.is_active %}
+                  <a href="{% url 'learning:player' e.course.slug %}" class="btn btn-dark">{% if e.percent %}เรียนต่อ{% else %}เริ่มเรียน{% endif %} {% icon "arrow-right" "icon-arrow" %}</a>
+                  {% if e.days_left <= 14 %}<a href="{% url 'payments:checkout' e.course.slug %}" class="btn btn-outline-dark btn-sm">{% icon "arrow-repeat" %} ต่ออายุ</a>{% endif %}
+                {% else %}
+                  <a href="{% url 'payments:checkout' e.course.slug %}" class="btn btn-dark">{% icon "arrow-repeat" %} ต่ออายุเพื่อเรียนต่อ</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="panel p-5 text-center" data-reveal>
+        <span class="icon-chip lg is-ink mb-3">{% icon "collection-play" %}</span>
+        <h3 class="h5">ยังไม่มีคอร์สที่ลงทะเบียน</h3>
+        <p class="text-secondary">เลือกคอร์สแรกของคุณแล้วเริ่มเรียนได้ทันที หรือลองดูคลิปตัวอย่างก่อน</p>
+        <div class="d-flex flex-wrap gap-2 justify-content-center"><a href="{% url 'courses:list' %}" class="btn btn-dark">เลือกดูคอร์ส {% icon "arrow-right" "icon-arrow" %}</a><a href="{% url 'core:free_trial' %}" class="btn btn-outline-dark">ทดลองเรียนฟรี</a></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- คอลัมน์ข้าง: streak + ปฏิทิน + ข้อมูลส่วนตัว + ช่วยเหลือ -->
+    <aside class="col-lg-4">
+      <div class="side-stack">
+        <div class="streak-card" data-reveal>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="icon-chip lg is-orange">{% icon "fire" %}</span>
+            <div>
+              <div class="streak-n">{{ stats.streak }} <small>วัน</small></div>
+              <div class="small">เรียนต่อเนื่อง · สูงสุด {{ stats.longest_streak }} วัน</div>
+            </div>
+          </div>
+          <div class="week" aria-label="เรียน 7 วันล่าสุด">
+            {% for d in week %}<div class="wd {% if d.studied %}on{% endif %} {% if d.today %}today{% endif %}" title="{% if d.studied %}{{ d.seconds|hours_minutes }}{% else %}ไม่ได้เรียน{% endif %}"><i>{% if d.studied %}{% icon "check2" %}{% endif %}</i><span>{{ d.label }}</span></div>{% endfor %}
+          </div>
+          <div class="small mt-3">{% if stats.studied_today %}วันนี้เรียนแล้ว เยี่ยมมาก{% else %}วันนี้ยังไม่ได้เรียน — เรียนสักคลิปเพื่อรักษาสถิติ{% endif %}</div>
+        </div>
+
+        <div class="surface p-3 p-md-4 is-compact" id="calendar" data-url="{% url 'learning:calendar_data' %}" data-reveal>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h6 mb-0 d-flex align-items-center gap-2">{% icon "calendar3" %} <span id="cal-title"></span></h2>
+            <div class="btn-group">
+              <button class="btn btn-light btn-sm" id="cal-prev" aria-label="เดือนก่อน">{% icon "chevron-left" %}</button>
+              <button class="btn btn-light btn-sm" id="cal-next" aria-label="เดือนถัดไป">{% icon "chevron-right" %}</button>
+            </div>
+          </div>
+          <div class="cal-grid mb-1" id="cal-head"></div>
+          <div class="cal-grid" id="cal-body"></div>
+          <div class="d-flex justify-content-between align-items-center mt-3 small text-secondary">
+            <span>รวม {{ stats.total_seconds|hours_minutes }} · {{ stats.study_days }} วัน</span>
+            <a href="{% url 'learning:study' %}" class="link-dash" style="padding-bottom: .15rem;">สถิติทั้งหมด</a>
+          </div>
+        </div>
+
+        <div class="surface" data-reveal>
+          <button class="side-toggle" data-bs-toggle="collapse" data-bs-target="#profileBox" aria-expanded="false" aria-controls="profileBox">
+            <span class="d-flex align-items-center gap-2">{% icon "person" %} แก้ไขข้อมูลส่วนตัว</span>{% icon "chevron-down" %}
+          </button>
+          <div class="collapse" id="profileBox">
+            <form method="post" action="{% url 'accounts:profile' %}" class="p-3 pt-0">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'learning:my_courses' %}">
+              <div class="mb-2"><label class="form-label small" for="{{ profile_form.full_name.id_for_label }}">ชื่อ-นามสกุล</label>{{ profile_form.full_name }}</div>
+              <div class="mb-3"><label class="form-label small" for="{{ profile_form.phone.id_for_label }}">เบอร์โทร</label>{{ profile_form.phone }}</div>
+              <div class="d-flex flex-wrap gap-2"><button class="btn btn-dark btn-sm">บันทึก</button><a href="{% url 'accounts:password_change' %}" class="btn btn-outline-dark btn-sm">{% icon "lock" %} เปลี่ยนรหัสผ่าน</a></div>
+            </form>
+          </div>
+        </div>
+
+        <div class="surface p-3 p-md-4" data-reveal>
+          <div class="d-flex align-items-center gap-3 mb-3"><span class="icon-chip sm is-blue">{% icon "headset" %}</span><div class="fw-medium">ต้องการความช่วยเหลือ?</div></div>
+          <div class="d-grid gap-2">
+            <a href="{% url 'core:guide' %}" class="btn btn-outline-dark btn-sm">{% icon "book" %} คู่มือการเรียน</a>
+            {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">{% icon "chat-dots" %} คุยกับแอดมินทาง LINE</a>{% endif %}
+          </div>
+          <p class="small text-secondary mt-3 mb-0">หรือกดปุ่ม ถามผู้ช่วย มุมขวาล่างได้ทุกเมื่อ</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/study.js' %}"></script>{% endblock %}

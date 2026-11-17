@@ -1,0 +1,21 @@
+{% load ui %}
+<div class="chat" id="chat" data-url="{% url 'chatbot:chat' %}">
+  <form hidden>{% csrf_token %}</form>
+  <button type="button" class="chat-fab" id="chatFab" aria-expanded="false" aria-controls="chatPanel" aria-label="เปิดแชทผู้ช่วย">
+    <span class="chat-fab-icon">{% icon "chat-dots" "icon-lg" %}</span><span class="chat-fab-label">ถามผู้ช่วย</span>
+  </button>
+  <section class="chat-panel" id="chatPanel" role="dialog" aria-label="แชทผู้ช่วย Let Me Help" hidden>
+    <header class="chat-head">
+      <span class="icon-chip sm is-blue">{% icon "stars" %}</span>
+      <div class="flex-grow-1 lh-sm"><div class="fw-medium">ผู้ช่วย Let Me Help</div><div class="mono text-secondary" id="chatMode">( ตอบคำถาม )</div></div>
+      <button type="button" class="chat-close" id="chatClose" aria-label="ปิดแชท">{% icon "x-lg" %}</button>
+    </header>
+    <div class="chat-log" id="chatLog" aria-live="polite"></div>
+    <div class="chat-suggest" id="chatSuggest"></div>
+    <form class="chat-form" id="chatForm" autocomplete="off">
+      <input class="form-control" id="chatInput" maxlength="800" placeholder="พิมพ์คำถามของคุณ" aria-label="ข้อความ">
+      <button class="chat-send" aria-label="ส่ง">{% icon "arrow-up-short" "icon-xl" %}</button>
+    </form>
+    <div class="chat-foot mono">คำตอบจากบอท อาจคลาดเคลื่อน{% if LINE_CONTACT_URL %} · <a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener">คุยกับแอดมินทาง LINE</a>{% endif %}</div>
+  </section>
+</div>

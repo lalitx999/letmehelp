@@ -1,0 +1,30 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}ตั้งค่าเว็บ{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ระบบ</span><h1 class="h3 mb-0">ตั้งค่าเว็บ</h1></div>
+<div class="row gx-lg-4 gy-3">
+  <div class="col-lg-7">
+    <form method="post" class="dash-card">
+      {% csrf_token %}
+      <h2 class="mb-3">การชำระเงินและการแจ้งเตือน</h2>
+      {% include "dashboard/_form_fields.html" %}
+      <button class="btn btn-dark">{% icon "check2" %} บันทึกการตั้งค่า</button>
+    </form>
+  </div>
+  <div class="col-lg-5">
+    <div class="dash-card">
+      <h2 class="mb-1">คีย์ลับและบริการภายนอก</h2>
+      <p class="small text-secondary">เพื่อความปลอดภัย คีย์เหล่านี้ตั้งในไฟล์ <code>.env</code> บนเซิร์ฟเวอร์ ไม่แก้ในเว็บ — ที่นี่แสดงเฉพาะสถานะ</p>
+      <ul class="list-unstyled mb-0">
+        {% for label, ok, var in secrets %}
+        <li class="d-flex justify-content-between align-items-center gap-2 py-2 border-top">
+          <div><div class="fw-medium">{{ label }}</div><div class="small text-secondary mono">{{ var }}</div></div>
+          {% if ok %}<span class="chip is-green">{% icon "check-circle-fill" %} ตั้งแล้ว</span>{% else %}<span class="chip is-orange">{% icon "exclamation-circle" %} ยังไม่ตั้ง</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

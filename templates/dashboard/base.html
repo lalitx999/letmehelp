@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static ui %}
+{% block title %}{% block dash_title %}แดชบอร์ด{% endblock %} — Let Me Help Admin{% endblock %}
+{% block extra_meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block body_class %}{% endblock %}
+{% block body %}
+<div class="dash-top">
+  <a href="{% url 'dashboard:overview' %}"><img src="{% static 'img/logo.png' %}" alt="Let Me Help" height="32"></a>
+  <button class="btn btn-light btn-sm" data-bs-toggle="offcanvas" data-bs-target="#dashDrawer" aria-label="เมนู">{% icon "list" "icon-lg" %}</button>
+</div>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="dashDrawer" aria-label="เมนูแอดมิน">
+  <div class="offcanvas-header"><img src="{% static 'img/logo.png' %}" alt="" height="32"><button class="btn-close" data-bs-dismiss="offcanvas" aria-label="ปิด"></button></div>
+  <div class="offcanvas-body">
+    {% include "dashboard/_nav.html" %}
+    <div class="drawer-foot">
+      <div class="d-flex align-items-center gap-2 mb-2"><span class="avatar">{{ user.full_name|initial }}</span><div class="small lh-sm"><div class="fw-semibold">{{ user.full_name }}</div><div class="text-secondary">ผู้ดูแลระบบ</div></div></div>
+      <a href="{% url 'core:home' %}" class="btn btn-light btn-sm w-100 mb-2">{% icon "box-arrow-up-right" %} ไปหน้าเว็บ</a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-link btn-sm w-100">{% icon "box-arrow-right" %} ออกจากระบบ</button></form>
+    </div>
+  </div>
+</div>
+
+<div class="dash-shell">
+  <aside class="dash-side">
+    <a href="{% url 'dashboard:overview' %}" class="mb-4 d-inline-block"><img src="{% static 'img/logo.png' %}" alt="Let Me Help"></a>
+    {% include "dashboard/_nav.html" %}
+    <div class="mt-auto pt-3 border-top">
+      <div class="d-flex align-items-center gap-2 mb-2"><span class="avatar">{{ user.full_name|initial }}</span><div class="small lh-sm"><div class="fw-semibold">{{ user.full_name }}</div><div class="text-secondary">ผู้ดูแลระบบ</div></div></div>
+      <a href="{% url 'core:home' %}" class="btn btn-light btn-sm w-100 mb-2">{% icon "box-arrow-up-right" %} ไปหน้าเว็บ</a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-link btn-sm w-100">{% icon "box-arrow-right" %} ออกจากระบบ</button></form>
+    </div>
+  </aside>
+  <div class="dash-main">
+    {% for m in messages %}
+    <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
+      {% if m.tags == 'success' %}{% icon "check-circle-fill" "icon-lg" %}{% elif m.tags == 'danger' %}{% icon "x-circle-fill" "icon-lg" %}{% elif m.tags == 'warning' %}{% icon "exclamation-triangle" "icon-lg" %}{% else %}{% icon "info-circle" "icon-lg" %}{% endif %}
+      <div class="flex-grow-1">{{ m }}</div><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="ปิด"></button>
+    </div>
+    {% endfor %}
+    {% block dash_content %}{% endblock %}
+  </div>
+</div>
+
+<!-- modal กลางของหลังบ้าน: ฟอร์มเพิ่ม/แก้ไข (โหลดด้วย Ajax) และกล่องยืนยัน -->
+<div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"></div></div></div>
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
+  <div class="modal-body p-4">
+    <span class="icon-chip is-red mb-3" id="confirmIcon">{% icon "exclamation-triangle" %}</span>
+    <h2 class="h6" id="confirmTitle">ยืนยันการทำรายการ</h2>
+    <p class="text-secondary small mb-0" id="confirmText"></p>
+  </div>
+  <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-dark" id="confirmOk">ยืนยัน</button></div>
+</div></div></div>
+<script src="{% static 'js/dash-crud.js' %}" defer></script>
+{% endblock %}

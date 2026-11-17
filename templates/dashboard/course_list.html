@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}คอร์ส{% endblock %}
+{% block dash_content %}
+<div class="d-flex justify-content-between align-items-end gap-2 mb-3">
+  <div><span class="lbl d-block mb-1">การสอน</span><h1 class="h3 mb-0">คอร์ส <span class="text-secondary fs-6 fw-normal">({{ ls.total }})</span></h1></div>
+</div>
+{% url 'dashboard:course_add' as create_url %}
+{% include "dashboard/_toolbar.html" with ls=ls placeholder="ค้นหาชื่อคอร์ส" create_url=create_url create_label="สร้างคอร์ส" filters=filters_ui %}
+<div class="dash-card p-0 table-responsive">
+  <table class="table table-hover align-middle mb-0 table-cards">
+    <thead><tr><th style="width:36px"><input type="checkbox" class="form-check-input" data-bulk-all aria-label="เลือกทั้งหมด"></th><th>{% sort_th "title" "คอร์ส" %}</th><th class="text-end">{% sort_th "price" "ราคา" %}</th><th class="text-end">คลิป</th><th class="text-end">{% sort_th "students" "นักเรียน" %}</th><th>เผยแพร่</th><th></th></tr></thead>
+    <tbody>
+    {% for c in ls.page.object_list %}{% cat_style c.category.slug as st %}
+      <tr>
+        <td class="no-label"><input type="checkbox" class="form-check-input" data-bulk-id="{{ c.pk }}" aria-label="เลือก {{ c.title }}"></td>
+        <td data-label="คอร์ส" class="wrap"><a href="{% url 'dashboard:course_content' c.pk %}" class="fw-medium">{{ c.title }}</a> {% if c.is_featured %}<span class="chip is-orange">{% icon "star-fill" %} แนะนำ</span>{% endif %}<div class="small text-secondary">{{ c.category.name }} · {{ c.access_days }} วัน</div></td>
+        <td data-label="ราคา" class="text-end">{% if c.promo_active %}<s class="text-secondary small">฿{{ c.price|floatformat:"-2" }}</s> {% endif %}฿{{ c.current_price|floatformat:"-2" }}{% if c.promo_active %}<div class="small text-secondary">โปรถึง {{ c.promo_ends_on|date:"j M y" }}</div>{% endif %}</td>
+        <td data-label="คลิป" class="text-end">{{ c.lesson_count }}</td>
+        <td data-label="นักเรียน" class="text-end">{{ c.student_count }}</td>
+        <td data-label="เผยแพร่"><button class="chip {% if c.is_published %}is-green{% endif %} border-0" data-post-url="{% url 'dashboard:course_toggle' c.pk 'is_published' %}" title="กดเพื่อสลับ">{% if c.is_published %}{% icon "check-circle-fill" %} เผยแพร่{% else %}{% icon "pencil-square" %} ฉบับร่าง{% endif %}</button></td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          <a class="btn btn-sm btn-dark" href="{% url 'dashboard:course_content' c.pk %}">{% icon "list-check" %} เนื้อหา</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboard:course_edit' c.pk %}" aria-label="แก้ไข">{% icon "pencil-square" %}</a>
+          <div class="dropdown"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-label="เพิ่มเติม">{% icon "three-dots" %}</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" target="_blank" href="{% url 'courses:detail' c.slug %}">{% icon "box-arrow-up-right" %} ดูบนเว็บ</a></li>
+              <li><button class="dropdown-item" data-post-url="{% url 'dashboard:course_duplicate' c.pk %}">{% icon "files" %} ทำสำเนา</button></li>
+              <li><button class="dropdown-item" data-post-url="{% url 'dashboard:course_toggle' c.pk 'is_featured' %}">{% icon "star" %} {% if c.is_featured %}เอาออกจากแนะนำ{% else %}ตั้งเป็นคอร์สแนะนำ{% endif %}</button></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><button class="dropdown-item text-danger" data-post-url="{% url 'dashboard:course_delete' c.pk %}" data-confirm="ย้ายคอร์ส “{{ c.title }}” ไปถังขยะ? นักเรียนที่ซื้อแล้ว ({{ c.student_count }} คน) ยังเรียนต่อได้ กู้คืนได้จากหน้าถังขยะ" data-danger>{% icon "trash3" %} ย้ายไปถังขยะ</button></li>
+            </ul></div>
+        </span></td>
+      </tr>
+    {% empty %}<tr><td colspan="7">{% include "dashboard/_empty.html" with text="ไม่พบคอร์ส" hint="ลองล้างตัวกรอง หรือสร้างคอร์สใหม่" icon="collection-play" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="bulk-bar" id="bulkBar" hidden>
+  <span>เลือก <b data-bulk-count>0</b> คอร์ส</span>
+  <button class="btn btn-sm btn-light" data-bulk-url="{% url 'dashboard:course_bulk' %}" data-bulk-action="publish">{% icon "check2" %} เผยแพร่</button>
+  <button class="btn btn-sm btn-light" data-bulk-url="{% url 'dashboard:course_bulk' %}" data-bulk-action="unpublish">{% icon "eye-slash" %} เลิกเผยแพร่</button>
+  <button class="btn btn-sm btn-light" data-bulk-url="{% url 'dashboard:course_bulk' %}" data-bulk-action="delete" data-confirm="ย้าย {n} คอร์สไปถังขยะ?" data-danger>{% icon "trash3" %} ลบ</button>
+</div>
+{% include "partials/_pagination.html" with page=ls.page %}
+{% endblock %}

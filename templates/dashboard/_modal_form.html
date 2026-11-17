@@ -1,0 +1,16 @@
+{% load ui %}
+<form method="post" action="{{ action }}" enctype="multipart/form-data" data-modal-form class="crud-form">
+  {% csrf_token %}
+  <div class="modal-header border-0 pb-0">
+    <h2 class="modal-title h5 mb-0">{{ title }}</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+  </div>
+  <div class="modal-body">
+    {% if intro %}<p class="text-secondary small">{{ intro }}</p>{% endif %}
+    {% include "dashboard/_form_fields.html" %}
+  </div>
+  <div class="modal-footer border-0 pt-0">
+    {% if back %}<a href="{{ back }}" class="btn btn-light">ยกเลิก</a>{% else %}<button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>{% endif %}
+    <button class="btn {{ submit_class }}">{{ submit }}</button>
+  </div>
+</form>

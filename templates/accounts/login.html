@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}เข้าสู่ระบบ — Let Me Help{% endblock %}
+{% block content %}
+<div class="container auth">
+  <div class="row g-0 surface overflow-hidden mx-auto" style="max-width: 920px;">
+    <div class="col-lg-5 p-2 p-lg-3">{% include "accounts/_side.html" with image="img/covers/auth-login.jpg" label="ยินดีต้อนรับกลับมา" heading="เข้าสู่ระบบเพื่อเรียนต่อจากที่ค้างไว้" %}</div>
+    <div class="col-lg-7">
+      <div class="auth-card">
+        <h1 class="h3 mb-1">เข้าสู่ระบบ</h1>
+        <p class="text-secondary mb-4">ใช้อีเมลที่สมัครไว้เพื่อเข้าเรียนต่อ</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% if form.non_field_errors %}<div class="state bad mb-3">{% icon "x-circle-fill" %}<div>{{ form.non_field_errors.0 }}</div></div>{% endif %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.username.id_for_label }}">อีเมล</label>
+            <div class="input-group input-group-lg"><span class="input-group-text">{% icon "envelope" %}</span>{{ form.username }}</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.password.id_for_label }}">รหัสผ่าน</label>
+            <div class="input-group input-group-lg"><span class="input-group-text">{% icon "lock" %}</span>{{ form.password }}<button type="button" class="btn btn-light pw-toggle" data-pw-toggle="#{{ form.password.id_for_label }}" aria-label="แสดงรหัสผ่าน">{% icon "eye" %}</button></div>
+          </div>
+          <button class="btn btn-primary btn-lg w-100">เข้าสู่ระบบ {% icon "arrow-right" "icon-arrow" %}</button>
+        </form>
+        <p class="text-center text-secondary mt-4 mb-0">ยังไม่มีบัญชี? <a href="{% url 'accounts:register' %}" class="fw-semibold">สมัครสมาชิก</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

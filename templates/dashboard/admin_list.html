@@ -1,0 +1,28 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}ผู้ดูแลระบบ{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ระบบ</span><h1 class="h3 mb-0">ผู้ดูแลระบบ</h1><div class="small text-secondary">แอดมินทุกคนมีสิทธิ์เท่ากัน ทำได้ทุกอย่างในหลังบ้าน</div></div>
+{% url 'dashboard:admin_add' as create_url %}
+{% include "dashboard/_toolbar.html" with placeholder="ชื่อ / อีเมล" create_url=create_url create_label="เพิ่มแอดมิน" modal=True %}
+<div class="dash-card p-0 table-responsive">
+  <table class="table table-hover align-middle mb-0 table-cards">
+    <thead><tr><th>{% sort_th "name" "ชื่อ" %}</th><th>อีเมล</th><th>{% sort_th "login" "ล็อกอินล่าสุด" %}</th><th>สถานะ</th><th></th></tr></thead>
+    <tbody>
+    {% for u in ls.page.object_list %}
+      <tr>
+        <td data-label="ชื่อ"><span class="d-inline-flex align-items-center gap-2 fw-medium"><span class="avatar" style="width:30px;height:30px;font-size:.8rem">{{ u.full_name|initial }}</span>{{ u.full_name }}</span>{% if u.pk == request.user.pk %} <span class="chip is-blue">คุณ</span>{% endif %}</td>
+        <td data-label="อีเมล" class="small">{{ u.email }}</td>
+        <td data-label="ล็อกอิน" class="small">{{ u.last_login|date:"j M y H:i"|default:"ยังไม่เคย" }}</td>
+        <td data-label="สถานะ">{% if u.is_active %}<span class="chip is-green">ใช้งานได้</span>{% else %}<span class="chip">ปิดอยู่</span>{% endif %}</td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:admin_edit' u.pk %}" aria-label="แก้ไข">{% icon "pencil-square" %}</button>
+          <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:user_password' u.pk %}" aria-label="รีเซ็ตรหัสผ่าน">{% icon "key" %}</button>
+          <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:admin_toggle' u.pk %}" {% if u.is_active %}data-confirm="ปิดบัญชีแอดมิน {{ u.full_name }}?" data-danger{% endif %} aria-label="เปิด/ปิด">{% if u.is_active %}{% icon "person-x" %}{% else %}{% icon "person-check" %}{% endif %}</button>
+        </span></td>
+      </tr>
+    {% empty %}<tr><td colspan="5">{% include "dashboard/_empty.html" with text="ไม่พบแอดมิน" icon="person-gear" %}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

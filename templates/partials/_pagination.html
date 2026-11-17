@@ -1,0 +1,8 @@
+{% load ui %}
+{% if page.has_other_pages %}
+<nav class="mt-5 d-flex justify-content-center align-items-center gap-3" aria-label="หน้า">
+  {% if page.has_previous %}<a class="btn btn-light btn-sm" href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page.previous_page_number }}">{% icon "chevron-left" %} ก่อนหน้า</a>{% endif %}
+  <span class="small text-secondary">หน้า {{ page.number }} จาก {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="btn btn-light btn-sm" href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}page={{ page.next_page_number }}">ถัดไป {% icon "chevron-right" %}</a>{% endif %}
+</nav>
+{% endif %}

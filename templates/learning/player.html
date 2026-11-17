@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static ui %}
+{% block title %}{{ lesson.title }} — {{ course.title }}{% endblock %}
+{% block content %}
+<section class="lesson-head">
+  <div class="container-xl pt-3 pt-lg-4"><div class="lesson-bar glass d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="min-w-0">
+      <nav class="crumbs mb-1" aria-label="breadcrumb"><a href="{% url 'learning:my_courses' %}">{% icon "arrow-left" %} แดชบอร์ด</a></nav>
+      <h2 class="h4 mb-0">{{ course.title }}</h2>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+      {% if can_track %}
+      <div class="d-flex align-items-center gap-2" style="min-width: 190px;">
+        <div class="progress flex-grow-1" role="progressbar" aria-valuenow="{{ course_percent }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: {{ course_percent }}%"></div></div>
+        <span class="small text-secondary text-nowrap">{{ lessons_done }}/{{ lessons_total }} คลิป</span>
+      </div>
+      {% if enrollment %}<span class="chip is-green">{% icon "clock" %} {% if enrollment.expires_at|date:"Y" > "2100" %}ตลอดชีพ{% else %}ถึง {{ enrollment.expires_at|date:"j M y" }}{% endif %}</span>{% endif %}
+      <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-outline-dark btn-sm">{% icon "arrow-repeat" %} ต่ออายุ</a>
+      {% else %}
+      <span class="chip is-orange">{% icon "play-circle" %} คลิปทดลองเรียนฟรี</span>
+      <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-dark btn-sm">สมัครเรียนคอร์สนี้ {% icon "arrow-right" "icon-arrow" %}</a>
+      {% endif %}
+    </div>
+  </div></div>
+</section>
+<div class="container-xl py-3 py-lg-4">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="player-frame"
+           id="player-root"
+           data-video-id="{{ lesson.youtube_video_id }}"
+           data-lesson-id="{{ lesson.pk }}"
+           data-start="{{ start_at }}"
+           data-track="{% if can_track %}1{% else %}0{% endif %}"
+           data-progress-url="{% url 'learning:save_progress' %}"
+           data-next-url="{% if next_lesson %}{% url 'learning:player_lesson' course.slug next_lesson.pk %}{% endif %}">
+        <div id="yt-player"></div>
+      </div>
+
+      <div class="player-bar" id="player-bar" role="toolbar" aria-label="ปุ่มควบคุมวิดีโอ">
+        <button type="button" class="btn btn-light btn-sm" id="pl-back" title="ย้อนหลัง 10 วินาที">{% icon "skip-backward-fill" %} 10 วิ</button>
+        <button type="button" class="btn btn-light btn-sm" id="pl-fwd" title="ข้ามไปข้างหน้า 10 วินาที">10 วิ {% icon "skip-forward-fill" %}</button>
+        <label class="pl-rate" title="ความเร็วในการเล่น">{% icon "lightning-charge" %}
+          <select id="pl-rate" class="form-select form-select-sm" aria-label="ความเร็ว">
+            <option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option>
+          </select>
+        </label>
+        {% if can_track %}<button type="button" class="btn btn-light btn-sm" id="pl-stamp" title="แทรกเวลาลงสมุดโน้ต">{% icon "journal-text" %} จดโน้ต</button>{% endif %}
+        <button type="button" class="btn btn-light btn-sm ms-auto" id="pl-full" title="เต็มจอ">{% icon "window-stack" %} เต็มจอ</button>
+      </div>
+
+      <div class="mt-3">
+        <span class="lbl d-block mb-1">{{ lesson.section.title|default:"บทเรียน" }}</span>
+        <h1 class="h3 mb-3">{{ lesson.title }}</h1>
+        <div class="lesson-nav">
+          {% if prev_lesson %}<a href="{% url 'learning:player_lesson' course.slug prev_lesson.pk %}" class="btn btn-outline-dark">{% icon "chevron-left" %} คลิปก่อนหน้า</a>{% else %}<span></span>{% endif %}
+          {% if next_lesson %}<a href="{% url 'learning:player_lesson' course.slug next_lesson.pk %}" id="next-btn" class="btn btn-dark">คลิปถัดไป {% icon "chevron-right" %}</a>{% endif %}
+        </div>
+      </div>
+
+      {% if not can_track %}
+      <div class="state info mt-3">{% icon "info-circle" %}<div>คลิปนี้เปิดให้ดูฟรี — <a href="{% url 'payments:checkout' course.slug %}" class="fw-semibold">สมัครเรียนคอร์สนี้</a> เพื่อปลดล็อกทุกคลิปและบันทึกความคืบหน้า</div></div>
+      {% endif %}
+
+      <ul class="nav nav-tabs mt-4" role="tablist">
+        {% if can_track %}<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-notes" type="button" role="tab">{% icon "journal-text" %} สมุดโน้ต</button></li>{% endif %}
+        <li class="nav-item"><button class="nav-link {% if not can_track %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-files" type="button" role="tab">{% icon "file-earmark-pdf" %} เอกสารประกอบ <span class="badge text-bg-light border">{{ lesson.attachments.all|length }}</span></button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-about" type="button" role="tab">{% icon "info-circle" %} เกี่ยวกับคอร์ส</button></li>
+      </ul>
+      <div class="tab-content pt-3">
+        {% if can_track %}
+        <div class="tab-pane fade show active" id="tab-notes" role="tabpanel"
+             data-note-url="{% url 'learning:note' lesson.pk %}" data-note-title="{{ lesson.title }}">
+          <div class="d-flex flex-wrap gap-2 mb-2">
+            <button type="button" class="btn btn-sm btn-dark" id="note-stamp">{% icon "clock" %} แทรกเวลา</button>
+            <button type="button" class="btn btn-sm btn-light" id="note-copy">{% icon "file-earmark-text" %} คัดลอก</button>
+            <button type="button" class="btn btn-sm btn-light" id="note-download">{% icon "download" %} ดาวน์โหลด .txt</button>
+            <span class="small text-secondary ms-auto align-self-center" id="note-status" aria-live="polite"></span>
+          </div>
+          <textarea id="note-text" class="form-control" rows="8" placeholder="จดโน้ตของคุณที่นี่ — กด แทรกเวลา เพื่อบันทึกจุดที่กำลังดูอยู่ เช่น [02:35]" maxlength="20000"></textarea>
+          <div id="note-stamps" class="d-flex flex-wrap gap-2 mt-2"></div>
+          <p class="small text-secondary mt-2 mb-0">โน้ตนี้เป็นของคุณคนเดียว บันทึกอัตโนมัติ คลิกเวลาที่แทรกไว้เพื่อข้ามไปจุดนั้นในวิดีโอ</p>
+        </div>
+        {% endif %}
+        <div class="tab-pane fade {% if not can_track %}show active{% endif %}" id="tab-files" role="tabpanel">
+          {% for att in lesson.attachments.all %}
+          <a class="surface d-flex align-items-center gap-3 p-3 mb-2 hover-lift" href="{% url 'learning:attachment' att.pk %}">
+            <span class="icon-chip sm is-red">{% icon "file-earmark-pdf" %}</span><span class="flex-grow-1 fw-medium">{{ att.title }}</span><span class="text-secondary">{% icon "download" "icon-lg" %}</span>
+          </a>
+          {% empty %}<p class="text-secondary mb-0">คลิปนี้ไม่มีเอกสารประกอบ</p>{% endfor %}
+        </div>
+        <div class="tab-pane fade" id="tab-about" role="tabpanel">
+          <p class="text-secondary mb-2">{{ course.subtitle|default:course.title }}</p>
+          {% if enrollment %}<span class="chip is-green">{% icon "clock" %} สิทธิ์เรียนถึง {{ enrollment.expires_at|date:"j M Y" }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <button type="button" class="curr-toggle d-lg-none" data-bs-toggle="collapse" data-bs-target="#currBox" aria-expanded="false" aria-controls="currBox">
+        <span class="d-flex align-items-center gap-2">{% icon "list-check" %} เนื้อหาในคอร์ส <span class="text-secondary small">({{ lessons_done }}/{{ lessons_total }})</span></span>{% icon "chevron-down" %}
+      </button>
+      <div class="collapse d-lg-block" id="currBox"><div class="surface lesson-panel">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center"><b>เนื้อหาในคอร์ส</b><span class="small text-secondary">{{ lessons_total }} คลิป</span></div>
+        <div class="lesson-scroll">
+          {% for section in course.sections.all %}
+          <div class="sec-title">{{ section.title }}</div>
+          {% for l in section.lessons.all %}
+            {% with p=progress|get_item:l.pk %}
+            <a class="lesson-item {% if l.pk == lesson.pk %}active{% endif %} {% if p.1 %}done{% endif %}" href="{% url 'learning:player_lesson' course.slug l.pk %}" {% if l.pk == lesson.pk %}aria-current="true"{% endif %}>
+              <span class="st">{% if p.1 %}{% icon "check-circle-fill" %}{% elif l.pk == lesson.pk %}{% icon "play-circle-fill" %}{% else %}{% icon "circle" %}{% endif %}</span>
+              <span class="flex-grow-1">{{ l.title }}</span>
+              {% if l.duration_seconds %}<span class="d">{{ l.duration_seconds|hms }}</span>{% endif %}
+            </a>
+            {% endwith %}
+          {% endfor %}
+          {% endfor %}
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/player.js' %}"></script>{% if can_track %}<script src="{% static 'js/notes.js' %}"></script>{% endif %}{% endblock %}

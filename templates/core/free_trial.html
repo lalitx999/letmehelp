@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}ทดลองเรียนฟรี — Let Me Help{% endblock %}
+{% block meta_description %}ลองเรียนคลิปตัวอย่างฟรีจากคอร์สภาษาอังกฤษ TGAT และ A-Level ก่อนตัดสินใจสมัคร ไม่ต้องล็อกอิน{% endblock %}
+{% block content %}
+<section class="page-hero is-center">
+  <div class="container">
+    <nav class="crumbs" aria-label="breadcrumb"><a href="{% url 'core:home' %}">หน้าแรก</a> {% icon "chevron-right" %} ทดลองเรียนฟรี</nav>
+    <h1><span class="soft">ลองก่อน</span> ค่อยตัดสินใจ</h1>
+    <p class="lead-s">ดูคลิปตัวอย่างจากแต่ละคอร์สได้ฟรี ไม่ต้องสมัครสมาชิก</p>
+  </div>
+</section>
+<section class="section pt-3">
+  <div class="container" style="max-width: 980px;">
+    {% for g in groups %}{% cat_style g.course.category.slug as st %}
+    <div class="surface mb-4 overflow-hidden" data-reveal>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 p-md-4 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+          <span class="icon-chip {{ st.0 }}">{% icon st.1 "" %}</span>
+          <div><div class="small text-secondary">{{ g.course.category.name }}</div><h2 class="h5 mb-0">{{ g.course.title }}</h2></div>
+        </div>
+        <a href="{% url 'courses:detail' g.course.slug %}" class="btn btn-outline-dark btn-sm">ดูรายละเอียดคอร์ส {% icon "arrow-right" "icon-arrow" %}</a>
+      </div>
+      {% for l in g.lessons %}
+      <a href="{% url 'learning:player_lesson' g.course.slug l.pk %}" class="lesson-line text-body d-flex" style="padding: .9rem 1.5rem;">
+        <span class="text-success">{% icon "play-circle-fill" "icon-lg" %}</span>
+        <span class="t"><span class="fw-medium">{{ l.title }}</span><span class="d-block small text-secondary">{{ l.section.title }}</span></span>
+        <span class="chip is-green">ดูฟรี</span>
+        {% if l.duration_seconds %}<span class="small text-secondary">{{ l.duration_seconds|hms }}</span>{% endif %}
+        {% icon "chevron-right" %}
+      </a>
+      {% endfor %}
+    </div>
+    {% empty %}
+    <div class="surface p-5 text-center"><span class="icon-chip lg is-ink mb-3">{% icon "play-circle" %}</span><h2 class="h5">ยังไม่มีคลิปทดลองเรียน</h2><p class="text-secondary">กำลังเตรียมคลิปตัวอย่าง โปรดติดตามเร็วๆ นี้</p><a href="{% url 'courses:list' %}" class="btn btn-primary">ดูคอร์สทั้งหมด</a></div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

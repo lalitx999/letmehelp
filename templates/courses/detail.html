@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static ui %}
+{% block title %}{{ course.title }} — Let Me Help{% endblock %}
+{% block meta_description %}{{ course.subtitle|default:course.title }} · เรียนได้ {{ course.access_days }} วัน{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ course.title }}{% endblock %}
+{% block og_description %}{{ course.subtitle|default:course.title }}{% endblock %}
+{% block og_image %}{% course_cover course as ogc %}{% if ogc %}{% if ogc|slice:":4" == "http" %}{{ ogc }}{% else %}{{ SITE_URL }}{{ ogc }}{% endif %}{% else %}{{ SITE_URL }}{% static 'img/icon-512.png' %}{% endif %}{% endblock %}
+{% block extra_meta %}
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Course","name":{{ course.title|json_str }},"description":{{ course.subtitle|default:course.title|json_str }},"provider":{"@type":"Organization","name":"Let Me Help"},"offers":{"@type":"Offer","price":"{{ course.current_price|floatformat:2 }}","priceCurrency":"THB","availability":"https://schema.org/InStock"}}</script>
+{% endblock %}
+{% block content %}
+{% cat_style course.category.slug as st %}{% course_cover course as cover %}
+<section class="page-hero">
+  <div class="container">
+    <div class="row align-items-center g-4 g-lg-5">
+      <div class="col-lg-7">
+        <nav class="crumbs" aria-label="breadcrumb"><a href="{% url 'core:home' %}">หน้าแรก</a> {% icon "chevron-right" %} <a href="{% url 'courses:list' %}">คอร์สทั้งหมด</a> {% icon "chevron-right" %} <a href="{% url 'courses:list' %}?category={{ course.category.slug }}">{{ course.category.name }}</a></nav>
+        <span class="lbl mt-3">{{ course.category.name }}</span>
+        <h1>{{ course.title }}</h1>
+        {% if course.subtitle %}<p class="lead-s">{{ course.subtitle }}</p>{% endif %}
+        <div class="fact-row">
+          <div class="tile-n glass"><b>{{ course.access_days }} วัน</b><span>อายุการเรียน</span></div>
+          <div class="tile-n glass"><b>{{ lesson_total }} คลิป</b><span>{{ course.sections.all|length }} บท</span></div>
+          <div class="tile-n glass"><b>ไม่จำกัด</b><span>ดูซ้ำได้ทุกอุปกรณ์</span></div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-cover {{ st.0 }}">
+          {% if cover %}<img src="{{ cover }}" alt="" referrerpolicy="no-referrer">{% else %}<span class="big">{% icon st.1 "" %}</span>{% endif %}
+          <div class="ui-pill glass"><span class="icon-chip sm is-ink">{% icon "file-earmark-pdf" %}</span><span>มีเอกสาร PDF ประกอบ<small>ดาวน์โหลดได้ในหน้าเรียน</small></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section pt-3">
+  <div class="container">
+    <div class="row gx-lg-5 gy-4">
+      <div class="col-lg-8 order-2 order-lg-1 course-body">
+        {% if course.description %}
+        <h2>รายละเอียดคอร์ส</h2>
+        <div class="mb-5 text-secondary" style="white-space: pre-line;">{{ course.description }}</div>
+        {% endif %}
+
+        <h2>เนื้อหาในคอร์ส</h2>
+        <div class="accordion is-cards" id="curriculum">
+          {% for section in course.sections.all %}
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sec{{ section.pk }}">{% icon "folder2-open" %}<span class="flex-grow-1">{{ section.title }}</span><span class="small text-secondary fw-normal me-2">{{ section.lessons.all|length }} คลิป</span></button></h3>
+            <div id="sec{{ section.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#curriculum">
+              <div class="accordion-body pt-0">
+              {% for l in section.lessons.all %}
+              <div class="lesson-line">
+                {% if l.is_free_preview %}<span class="text-success">{% icon "play-circle-fill" "icon-lg" %}</span>{% else %}<span class="text-secondary">{% icon "lock" "icon-lg" %}</span>{% endif %}
+                <span class="t">{{ l.title }}</span>
+                {% if l.is_free_preview %}<a href="{% url 'learning:player_lesson' course.slug l.pk %}" class="chip is-green">ดูฟรี</a>{% endif %}
+                {% if l.duration_seconds %}<span class="small text-secondary">{{ l.duration_seconds|hms }}</span>{% endif %}
+              </div>
+              {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% empty %}<p class="text-secondary">กำลังเตรียมเนื้อหา</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="col-lg-4 order-1 order-lg-2">
+        <div class="buy-card">
+          {% if packages|length > 1 %}
+          <div class="small text-secondary">เริ่มต้น</div>
+          <div class="buy-price mb-3">฿{{ packages.0.price|floatformat:"-2" }}{% if packages.0.list_price %}<s>฿{{ packages.0.list_price|floatformat:"-2" }}</s>{% endif %}</div>
+          <div class="d-grid gap-2 mb-3">
+            {% for p in packages %}<a href="{% url 'payments:checkout' course.slug %}?days={{ p.days }}" class="pkg"><span class="flex-grow-1">{{ p.label }}</span><span class="fw-semibold">฿{{ p.price|floatformat:"-2" }}</span>{% icon "chevron-right" %}</a>{% endfor %}
+          </div>
+          {% else %}
+          <div class="buy-price">฿{{ course.current_price|floatformat:"-2" }}{% if course.promo_active %}<s>฿{{ course.price|floatformat:"-2" }}</s>{% endif %}</div>
+          {% if course.promo_active %}<p class="mt-2 mb-2"><span class="chip is-red">{% icon "stars" %} โปรเปิดตัว ถึง {{ course.promo_ends_on|date:"j M Y" }}</span></p>{% endif %}
+          <p class="text-secondary mb-3">จ่ายครั้งเดียว เรียนได้ {{ course.access_days }} วัน</p>
+          {% endif %}
+          {% if enrollment %}
+            <a href="{% url 'learning:player' course.slug %}" class="btn btn-dark btn-lg w-100">{% icon "play-circle" %} เข้าเรียน</a>
+            <p class="small text-secondary mt-2 mb-3 text-center">สิทธิ์ถึง {{ enrollment.expires_at|date:"j M Y" }}</p>
+            <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-outline-dark w-100">{% icon "arrow-repeat" %} ต่ออายุคอร์ส</a>
+          {% else %}
+            <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-dark btn-lg w-100">สมัครเรียนคอร์สนี้ {% icon "arrow-right" "icon-arrow" %}</a>
+            {% if not user.is_authenticated %}<p class="small text-secondary mt-2 mb-0 text-center">{% icon "lock" %} ต้องเข้าสู่ระบบก่อนชำระเงิน</p>{% endif %}
+          {% endif %}
+          {% if LINE_CONTACT_URL or course.book_url %}
+          <div class="d-grid gap-2 mt-3">
+            {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="btn btn-outline-dark">{% icon "chat-dots" %} ทักถามก่อนสมัครทาง LINE</a>{% endif %}
+            {% if course.book_url %}<a href="{{ course.book_url }}" target="_blank" rel="noopener sponsored" class="btn btn-outline-dark">{% icon "book" %} สั่งซื้อหนังสือเล่ม (Shopee)</a>{% endif %}
+          </div>
+          {% endif %}
+          <hr class="my-4">
+          <ul class="checklist">
+            <li>{% icon "check-circle-fill" %}ดูย้อนหลังได้ไม่จำกัดครั้ง</li>
+            <li>{% icon "check-circle-fill" %}เอกสาร PDF ประกอบการเรียน</li>
+            <li>{% icon "check-circle-fill" %}จำตำแหน่งที่เรียนค้างไว้</li>
+            <li>{% icon "check-circle-fill" %}เรียนได้ทุกอุปกรณ์</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
