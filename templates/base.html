@@ -117,8 +117,8 @@
         <p class="foot-about">คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT / A-Level สำหรับน้องมัธยม เรียนได้ทุกที่ ดูย้อนหลังได้ พร้อมเอกสารประกอบ</p>
         {% if SOCIAL_LINKS or LINE_CONTACT_URL or CONTACT_EMAIL %}
         <ul class="social-list" aria-label="ช่องทางติดตาม">
-          {% for s in SOCIAL_LINKS %}<li><a class="social" href="{{ s.url }}" target="_blank" rel="noopener noreferrer me" aria-label="{{ s.label }}" title="{{ s.label }}">{% icon s.icon "" %}</a></li>{% endfor %}
           {% if LINE_CONTACT_URL %}<li><a class="social" href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener noreferrer" aria-label="LINE" title="LINE">{% icon "line" "" %}</a></li>{% endif %}
+          {% for s in SOCIAL_LINKS %}<li><a class="social" href="{{ s.url }}" target="_blank" rel="noopener noreferrer me" aria-label="{{ s.label }}" title="{{ s.label }}">{% icon s.icon "" %}</a></li>{% endfor %}
           {% if CONTACT_EMAIL %}<li><a class="social" href="mailto:{{ CONTACT_EMAIL }}" aria-label="อีเมล" title="อีเมล">{% icon "envelope" "" %}</a></li>{% endif %}
         </ul>
         {% endif %}

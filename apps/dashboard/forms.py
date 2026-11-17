@@ -37,6 +37,7 @@ class SiteSettingsForm(forms.Form):
     SOCIAL_INSTAGRAM = forms.URLField(label="Instagram", required=False)
     SOCIAL_YOUTUBE = forms.URLField(label="YouTube", required=False)
     SOCIAL_TIKTOK = forms.URLField(label="TikTok", required=False)
+    SOCIAL_LEMON8 = forms.URLField(label="Lemon8", required=False)
     EXPIRY_REMINDER_DAYS = forms.CharField(label="แจ้งเตือนก่อนหมดอายุ (วัน คั่นด้วยจุลภาค)", required=False, max_length=40, help_text="เช่น 7,3,1")
     ANNOUNCEMENT = forms.CharField(label="ประกาศบนหัวเว็บ", required=False, max_length=200, help_text="เว้นว่างเพื่อไม่แสดง")
 

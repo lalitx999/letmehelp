@@ -399,6 +399,7 @@ class PromoPriceTests(DashCase):
         self.assertEqual(Course._meta.get_field("access_days").default, 365)
 
 
+@override_settings(LINE_CONTACT_URL="")  # ทดสอบกรณียังไม่ได้ตั้งลิงก์ LINE (ค่าตั้งต้นมีลิงก์แบรนด์แล้ว)
 class ShopeeAndContactLinkTests(DashCase):
     def test_book_and_line_buttons_only_when_set(self):
         url = reverse("courses:detail", args=["c"])

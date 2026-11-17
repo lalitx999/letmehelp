@@ -142,12 +142,14 @@ CHATBOT_MODEL = env("CHATBOT_MODEL", default="claude-opus-5-5")
 CHATBOT_EFFORT = env("CHATBOT_EFFORT", default="low")  # low | medium | high
 CHATBOT_FALLBACK_MODEL = env("CHATBOT_FALLBACK_MODEL", default="claude-opus-4-8")  # เว้นว่างเพื่อปิดโมเดลสำรอง
 # ลิงก์ LINE ส่วนตัวของเจ้าของ (https://line.me/ti/p/...) — ปุ่มทักถามก่อนสมัคร ในหน้าคอร์ส แดชบอร์ดนักเรียน และแชทบอท
-LINE_CONTACT_URL = env("LINE_CONTACT_URL", default="")
+LINE_CONTACT_URL = env("LINE_CONTACT_URL", default="") or "https://line.me/ti/p/uzCrWzXaGX"
 
 # โซเชียลมีเดียของแบรนด์ (ลิงก์สาธารณะ ไม่ใช่ความลับ) — ตั้งค่าตั้งต้นไว้ที่นี่ ให้แอดมินแก้ทับได้ที่หลังบ้าน → ตั้งค่าเว็บ
-SOCIAL_TIKTOK = env("SOCIAL_TIKTOK", default="https://www.tiktok.com/@letmehelp.eng")
-SOCIAL_FACEBOOK = env("SOCIAL_FACEBOOK", default="https://www.facebook.com/share/1CJVxPAg1N/")
-SOCIAL_INSTAGRAM = env("SOCIAL_INSTAGRAM", default="")
+# `or` = ถ้าใน .env มีคีย์แต่เว้นว่าง ก็ยังใช้ลิงก์ของแบรนด์ (ลิงก์ไม่มี tracking param)
+SOCIAL_TIKTOK = env("SOCIAL_TIKTOK", default="") or "https://www.tiktok.com/@letmehelp.eng"
+SOCIAL_FACEBOOK = env("SOCIAL_FACEBOOK", default="") or "https://www.facebook.com/share/1CJVxPAg1N/"
+SOCIAL_INSTAGRAM = env("SOCIAL_INSTAGRAM", default="") or "https://www.instagram.com/letmehelp.eng/"
+SOCIAL_LEMON8 = env("SOCIAL_LEMON8", default="") or "https://www.lemon8-app.com/@letmehelp.eng?region=th"
 SOCIAL_YOUTUBE = env("SOCIAL_YOUTUBE", default="")
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30

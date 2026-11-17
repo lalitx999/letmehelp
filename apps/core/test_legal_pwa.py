@@ -117,10 +117,14 @@ class FooterAndCookieBannerTests(TestCase):
         html = self.client.get(reverse("core:home")).content.decode()
         self.assertIn("https://www.tiktok.com/@letmehelp.eng", html)
         self.assertIn("https://www.facebook.com/share/1CJVxPAg1N/", html)
+        self.assertIn("https://www.instagram.com/letmehelp.eng/", html)
+        self.assertIn("https://www.lemon8-app.com/@letmehelp.eng", html)
+        self.assertIn("https://line.me/ti/p/uzCrWzXaGX", html)
+        self.assertIn('aria-label="Lemon8"', html)
         self.assertNotIn("_t=", html)  # ไม่เอา tracking param จากลิงก์แชร์
-        self.assertNotIn('aria-label="Instagram"', html)  # ยังไม่มีลิงก์ = ไม่แสดงไอคอน
+        self.assertNotIn("utm_source", html)
 
-    @override_settings(SOCIAL_FACEBOOK="", SOCIAL_TIKTOK="")
+    @override_settings(SOCIAL_FACEBOOK="", SOCIAL_TIKTOK="", SOCIAL_INSTAGRAM="")
     def test_social_icons_only_for_links_that_are_set(self):
         html = self.client.get(reverse("core:home")).content.decode()
         self.assertNotIn('aria-label="Facebook"', html)

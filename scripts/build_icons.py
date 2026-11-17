@@ -23,6 +23,12 @@ three-dots three-dots-vertical files star star-fill toggle-on toggle-off arrow-c
 """.split()
 
 
+# ไอคอนที่ Bootstrap Icons ไม่มี (วาดเอง)
+CUSTOM = [
+    '<symbol id="lemon8" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .5a3.6 3.6 0 0 0-2.4 6.3A4.1 4.1 0 0 0 8 15.5a4.1 4.1 0 0 0 2.4-8.7A3.6 3.6 0 0 0 8 .5Zm0 1.8a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6Zm0 5.4a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6Z"/></symbol>',
+]
+
+
 def main(src: str) -> None:
     text = Path(src).read_text()
     symbols = dict(re.findall(r'<symbol class="[^"]*" viewBox="([^"]*)" id="([^"]*)">(.*?)</symbol>', text, re.S) and
@@ -34,6 +40,7 @@ def main(src: str) -> None:
             out.append(f'<symbol id="{name}" viewBox="{vb}">{body}</symbol>')
         else:
             missing.append(name)
+    out += CUSTOM
     svg = '<svg xmlns="http://www.w3.org/2000/svg">' + "".join(out) + "</svg>"
     dest = Path(__file__).resolve().parent.parent / "static/vendor/bootstrap-icons/icons.svg"
     dest.write_text(svg)

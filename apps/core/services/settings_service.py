@@ -8,15 +8,16 @@ from apps.core.models import SiteSetting
 CACHE_KEY = "site_settings:v1"
 EDITABLE = (
     "PROMPTPAY_ID", "PROMPTPAY_ACCOUNT_NAME", "LINE_CONTACT_URL", "EXPIRY_REMINDER_DAYS", "ANNOUNCEMENT",
-    "OWNER_NAME", "CONTACT_EMAIL", "SOCIAL_FACEBOOK", "SOCIAL_INSTAGRAM", "SOCIAL_YOUTUBE", "SOCIAL_TIKTOK",
+    "OWNER_NAME", "CONTACT_EMAIL", "SOCIAL_FACEBOOK", "SOCIAL_INSTAGRAM", "SOCIAL_YOUTUBE", "SOCIAL_TIKTOK", "SOCIAL_LEMON8",
 )
 
 # โซเชียลมีเดียที่แสดงใน Footer (ใส่ลิงก์ในหน้า ตั้งค่าเว็บ แล้วไอคอนจะโผล่เอง)
 SOCIALS = (
     ("SOCIAL_FACEBOOK", "Facebook", "facebook"),
     ("SOCIAL_INSTAGRAM", "Instagram", "instagram"),
-    ("SOCIAL_YOUTUBE", "YouTube", "youtube"),
     ("SOCIAL_TIKTOK", "TikTok", "tiktok"),
+    ("SOCIAL_LEMON8", "Lemon8", "lemon8"),
+    ("SOCIAL_YOUTUBE", "YouTube", "youtube"),
 )
 
 

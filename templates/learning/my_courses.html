@@ -142,10 +142,11 @@
         </div>
 
         <div class="surface p-3 p-md-4" data-reveal>
-          <div class="d-flex align-items-center gap-3 mb-3"><span class="icon-chip sm is-blue">{% icon "headset" %}</span><div class="fw-medium">ต้องการความช่วยเหลือ?</div></div>
+          {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="d-flex align-items-center gap-3 mb-3 text-reset text-decoration-none"><span class="icon-chip sm is-blue">{% icon "headset" %}</span><div class="fw-medium">ต้องการความช่วยเหลือ?</div></a>
+          {% else %}<div class="d-flex align-items-center gap-3 mb-3"><span class="icon-chip sm is-blue">{% icon "headset" %}</span><div class="fw-medium">ต้องการความช่วยเหลือ?</div></div>{% endif %}
           <div class="d-grid gap-2">
+            {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">{% icon "line" %} ทักแอดมินทาง LINE</a>{% endif %}
             <a href="{% url 'core:guide' %}" class="btn btn-outline-dark btn-sm">{% icon "book" %} คู่มือการเรียน</a>
-            {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">{% icon "chat-dots" %} คุยกับแอดมินทาง LINE</a>{% endif %}
           </div>
           <p class="small text-secondary mt-3 mb-0">หรือกดปุ่ม ถามผู้ช่วย มุมขวาล่างได้ทุกเมื่อ</p>
         </div>
