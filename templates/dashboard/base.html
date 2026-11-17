@@ -2,42 +2,59 @@
 {% load static ui %}
 {% block title %}{% block dash_title %}แดชบอร์ด{% endblock %} — Let Me Help Admin{% endblock %}
 {% block extra_meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
-{% block body_class %}{% endblock %}
+{% block body_class %}is-admin{% endblock %}
 {% block body %}
-<div class="dash-top">
-  <a href="{% url 'dashboard:overview' %}"><img src="{% static 'img/logo.png' %}" alt="Let Me Help" height="32"></a>
-  <button class="btn btn-light btn-sm" data-bs-toggle="offcanvas" data-bs-target="#dashDrawer" aria-label="เมนู">{% icon "list" "icon-lg" %}</button>
-</div>
-<div class="offcanvas offcanvas-start" tabindex="-1" id="dashDrawer" aria-label="เมนูแอดมิน">
-  <div class="offcanvas-header"><img src="{% static 'img/logo.png' %}" alt="" height="32"><button class="btn-close" data-bs-dismiss="offcanvas" aria-label="ปิด"></button></div>
-  <div class="offcanvas-body">
-    {% include "dashboard/_nav.html" %}
-    <div class="drawer-foot">
-      <div class="d-flex align-items-center gap-2 mb-2"><span class="avatar">{{ user.full_name|initial }}</span><div class="small lh-sm"><div class="fw-semibold">{{ user.full_name }}</div><div class="text-secondary">ผู้ดูแลระบบ</div></div></div>
-      <a href="{% url 'core:home' %}" class="btn btn-light btn-sm w-100 mb-2">{% icon "box-arrow-up-right" %} ไปหน้าเว็บ</a>
-      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-link btn-sm w-100">{% icon "box-arrow-right" %} ออกจากระบบ</button></form>
-    </div>
+{# หลังบ้าน v3: แถบข้างสีเข้ม + แถบบนกระจก (ค้นหา / ไปหน้าเว็บ / บัญชี) #}
+
+<!-- ลิ้นชักเมนูบนมือถือ -->
+<div class="offcanvas offcanvas-start adm-drawer" tabindex="-1" id="dashDrawer" aria-label="เมนูแอดมิน">
+  <div class="offcanvas-header">
+    <a href="{% url 'dashboard:overview' %}" class="adm-brand"><img src="{% static 'img/logo.png' %}" alt="Let Me Help"></a>
+    <button class="adm-icon-btn" data-bs-dismiss="offcanvas" aria-label="ปิด">{% icon "x-lg" %}</button>
   </div>
+  <div class="offcanvas-body">{% include "dashboard/_nav.html" %}</div>
 </div>
 
-<div class="dash-shell">
-  <aside class="dash-side">
-    <a href="{% url 'dashboard:overview' %}" class="mb-4 d-inline-block"><img src="{% static 'img/logo.png' %}" alt="Let Me Help"></a>
+<div class="adm">
+  <aside class="adm-side" aria-label="เมนูแอดมิน">
+    <a href="{% url 'dashboard:overview' %}" class="adm-brand"><img src="{% static 'img/logo.png' %}" alt="Let Me Help"></a>
     {% include "dashboard/_nav.html" %}
-    <div class="mt-auto pt-3 border-top">
-      <div class="d-flex align-items-center gap-2 mb-2"><span class="avatar">{{ user.full_name|initial }}</span><div class="small lh-sm"><div class="fw-semibold">{{ user.full_name }}</div><div class="text-secondary">ผู้ดูแลระบบ</div></div></div>
-      <a href="{% url 'core:home' %}" class="btn btn-light btn-sm w-100 mb-2">{% icon "box-arrow-up-right" %} ไปหน้าเว็บ</a>
-      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-link btn-sm w-100">{% icon "box-arrow-right" %} ออกจากระบบ</button></form>
-    </div>
   </aside>
-  <div class="dash-main">
-    {% for m in messages %}
-    <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
-      {% if m.tags == 'success' %}{% icon "check-circle-fill" "icon-lg" %}{% elif m.tags == 'danger' %}{% icon "x-circle-fill" "icon-lg" %}{% elif m.tags == 'warning' %}{% icon "exclamation-triangle" "icon-lg" %}{% else %}{% icon "info-circle" "icon-lg" %}{% endif %}
-      <div class="flex-grow-1">{{ m }}</div><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="ปิด"></button>
-    </div>
-    {% endfor %}
-    {% block dash_content %}{% endblock %}
+
+  <div class="adm-main">
+    <header class="adm-top">
+      <button class="adm-icon-btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#dashDrawer" aria-label="เปิดเมนู">{% icon "list" %}</button>
+      <button type="button" class="adm-search" data-focus-search>
+        {% icon "search" %}<span>ค้นหาในหน้านี้</span><kbd>/</kbd>
+      </button>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <a href="{% url 'core:home' %}" class="adm-icon-btn" target="_blank" rel="noopener" title="ไปหน้าเว็บ" aria-label="ไปหน้าเว็บ">{% icon "box-arrow-up-right" %}</a>
+        <div class="dropdown">
+          <button class="adm-user" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="avatar">{{ user.full_name|initial }}</span>
+            <span class="d-none d-md-block text-start lh-sm"><b>{{ user.get_short_name }}</b><small>ผู้ดูแลระบบ</small></span>
+            {% icon "chevron-down" %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="px-3 py-2 small text-secondary">{{ user.email }}</li>
+            <li><a class="dropdown-item" href="{% url 'core:home' %}">{% icon "house-door" %} หน้าเว็บ</a></li>
+            <li><a class="dropdown-item" href="{% url 'dashboard:site_settings' %}">{% icon "gear" %} ตั้งค่าเว็บ</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="dropdown-item">{% icon "box-arrow-right" %} ออกจากระบบ</button></form></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="adm-content">
+      {% for m in messages %}
+      <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
+        {% if m.tags == 'success' %}{% icon "check-circle-fill" "icon-lg" %}{% elif m.tags == 'danger' %}{% icon "x-circle-fill" "icon-lg" %}{% elif m.tags == 'warning' %}{% icon "exclamation-triangle" "icon-lg" %}{% else %}{% icon "info-circle" "icon-lg" %}{% endif %}
+        <div class="flex-grow-1">{{ m }}</div><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="ปิด"></button>
+      </div>
+      {% endfor %}
+      {% block dash_content %}{% endblock %}
+    </main>
   </div>
 </div>
 

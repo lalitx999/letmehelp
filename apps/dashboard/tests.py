@@ -76,6 +76,28 @@ class AccessMatrixTests(DashCase):
         self.assertTrue(Course.objects.filter(pk=self.course.pk).exists())
 
 
+class OverviewTests(DashCase):
+    def test_overview_bento_shows_sales_todo_and_slip_badge(self):
+        self.client.force_login(self.admin)
+        r = self.client.get(reverse("dashboard:overview"))
+        self.assertContains(r, "ไม่มีงานค้าง")
+        self.assertNotContains(r, 'class="adm-badge"')
+        Order.objects.create(user=self.student, course=self.course, amount=990, status=Order.Status.PAID, paid_at=timezone.now())
+        pending = Order.objects.create(user=self.student, course=self.course, amount=990)
+        PaymentSlip.objects.create(order=pending, image=SimpleUploadedFile("s.png", PNG, "image/png"), status=PaymentSlip.Status.MANUAL_REVIEW)
+        r = self.client.get(reverse("dashboard:overview"))
+        self.assertContains(r, "สลิปรอแอดมินตรวจ")
+        self.assertContains(r, '<b class="adm-badge">1</b>', html=False)
+        self.assertContains(r, self.course.title)  # คอร์สขายดี
+        self.assertContains(r, "฿990")
+
+    def test_slip_badge_query_only_on_admin_pages(self):
+        self.client.force_login(self.admin)
+        with CaptureQueriesContext(connection) as ctx:
+            self.client.get(reverse("courses:list"))
+        self.assertFalse(any("payments_paymentslip" in q["sql"] for q in ctx.captured_queries))
+
+
 class TrashTests(DashCase):
     def test_delete_hides_from_public_restore_brings_back(self):
         self.client.force_login(self.admin)

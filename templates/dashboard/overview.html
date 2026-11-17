@@ -2,46 +2,97 @@
 {% load ui %}
 {% block dash_title %}ภาพรวม{% endblock %}
 {% block dash_content %}
-<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4"><div><span class="lbl mb-2">ภาพรวม · {{ s.days }} วันล่าสุด</span><h1 class="h3 mb-0 mt-2"><span class="text-secondary fw-semibold">สวัสดี</span> {{ user.get_short_name }}</h1></div><div class="d-flex gap-2"><a href="{% url 'dashboard:exports' %}" class="btn btn-outline-dark btn-sm">{% icon "file-earmark-bar-graph" %} รายงาน</a><a href="{% url 'dashboard:course_add' %}" class="btn btn-dark btn-sm">{% icon "plus-lg" %} สร้างคอร์ส</a></div></div>
-
-{% if s.pending_slips or s.expiring_7d or s.reviewing_orders %}
-<div class="dash-card mb-3">
-  <h2 class="mb-3 d-flex align-items-center gap-2">{% icon "lightning-charge" %} ต้องทำตอนนี้</h2>
-  <div class="row g-2">
-    {% if s.pending_slips %}<div class="col-md-4"><a class="todo is-orange" href="{% url 'dashboard:slip_list' %}">{% icon "receipt" "icon-lg" %}<div><b>{{ s.pending_slips }}</b> สลิปรอแอดมินตรวจ</div>{% icon "arrow-right" %}</a></div>{% endif %}
-    {% if s.expiring_7d %}<div class="col-md-4"><a class="todo is-red" href="{% url 'dashboard:enrollment_list' %}">{% icon "clock-history" "icon-lg" %}<div><b>{{ s.expiring_7d }}</b> สิทธิ์ใกล้หมดอายุใน 7 วัน</div>{% icon "arrow-right" %}</a></div>{% endif %}
-    {% if s.reviewing_orders %}<div class="col-md-4"><a class="todo is-blue" href="{% url 'dashboard:order_list' %}?status=reviewing">{% icon "hourglass-split" "icon-lg" %}<div><b>{{ s.reviewing_orders }}</b> ออเดอร์กำลังตรวจสลิป</div>{% icon "arrow-right" %}</a></div>{% endif %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <span class="lbl">{% now "l j F Y" %}</span>
+    <h1 class="h3 mb-0 mt-1"><span class="text-secondary fw-semibold">สวัสดี</span> {{ user.get_short_name }}</h1>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'dashboard:exports' %}" class="btn btn-outline-dark btn-sm">{% icon "file-earmark-bar-graph" %} รายงาน</a>
+    <a href="{% url 'dashboard:course_add' %}" class="btn btn-dark btn-sm">{% icon "plus-lg" %} สร้างคอร์ส</a>
   </div>
 </div>
-{% endif %}
 
-<div class="row g-3 mb-3">
-  <div class="col-6 col-xl-3"><a class="kpi-link" href="{% url 'dashboard:order_list' %}?status=paid"><div class="stat dash-card"><span class="icon-chip is-green">{% icon "cash-stack" %}</span><div><div class="num">฿{{ s.revenue|floatformat:"0g" }}</div><div class="lbl-s">ยอดขาย {{ s.days }} วัน</div></div></div></a></div>
-  <div class="col-6 col-xl-3"><a class="kpi-link" href="{% url 'dashboard:order_list' %}?status=paid"><div class="stat dash-card"><span class="icon-chip is-blue">{% icon "receipt-cutoff" %}</span><div><div class="num">{{ s.paid_orders }}</div><div class="lbl-s">ออเดอร์ที่ชำระแล้ว</div></div></div></a></div>
-  <div class="col-6 col-xl-3"><a class="kpi-link" href="{% url 'dashboard:student_list' %}"><div class="stat dash-card"><span class="icon-chip is-orange">{% icon "person-plus" %}</span><div><div class="num">{{ s.signups_period }}</div><div class="lbl-s">สมัครใหม่ ({{ s.new_students_7d }} ใน 7 วัน · รวม {{ s.students_total }})</div></div></div></a></div>
-  <div class="col-6 col-xl-3"><a class="kpi-link" href="{% url 'dashboard:enrollment_list' %}?tab=active"><div class="stat dash-card"><span class="icon-chip is-red">{% icon "mortarboard" %}</span><div><div class="num">{{ s.active_enrollments }}</div><div class="lbl-s">กำลังเรียนอยู่</div></div></div></a></div>
-</div>
+<div class="bento">
+  <!-- ยอดขาย + กราฟ (การ์ดใหญ่สีเข้ม) -->
+  <a class="b-card b-hero" href="{% url 'dashboard:order_list' %}?status=paid">
+    <div class="d-flex justify-content-between align-items-start gap-3">
+      <div>
+        <div class="b-label">ยอดขาย {{ s.days }} วันล่าสุด</div>
+        <div class="b-big">฿{{ s.revenue|floatformat:"0g" }}</div>
+        <div class="b-sub">{{ s.paid_orders }} ออเดอร์ที่ชำระแล้ว</div>
+      </div>
+      <span class="b-go">{% icon "arrow-up-right" %}</span>
+    </div>
+    {% if s.daily_sales %}
+    <div class="spark is-dark" id="spark">{% for d in s.daily_sales %}<span title="{{ d.day|date:'j M' }}: ฿{{ d.revenue|floatformat:0 }}" data-v="{{ d.revenue|floatformat:0 }}" style="animation-delay: {{ forloop.counter0 }}0ms"></span>{% endfor %}</div>
+    {% else %}
+    <div class="b-empty">ยังไม่มียอดขายในช่วงนี้</div>
+    {% endif %}
+  </a>
 
-<div class="row g-3">
-  <div class="col-lg-7"><div class="dash-card h-100">
-    <h2 class="d-flex align-items-center gap-2 mb-3">{% icon "bar-chart-line" %} ยอดขายรายวัน</h2>
-    {% if s.daily_sales %}<div class="spark" id="spark">{% for d in s.daily_sales %}<span title="{{ d.day|date:'j M' }}: ฿{{ d.revenue|floatformat:0 }}" data-v="{{ d.revenue|floatformat:0 }}" style="animation-delay: {{ forloop.counter0 }}0ms"></span>{% endfor %}</div>
-    {% else %}{% include "dashboard/_empty.html" with text="ยังไม่มียอดขายในช่วงนี้" icon="graph-up" %}{% endif %}
-  </div></div>
-  <div class="col-lg-5"><div class="dash-card h-100">
-    <h2 class="d-flex align-items-center gap-2 mb-3">{% icon "trophy" %} ยอดขายแยกตามคอร์ส</h2>
-    <ul class="list-unstyled mb-0">
-      {% for r in s.by_course %}<li class="d-flex justify-content-between align-items-center gap-3 py-2 {% if not forloop.last %}border-bottom{% endif %}"><div class="min-w-0"><div class="fw-medium text-truncate">{{ r.course__title }}</div><div class="small text-secondary">{{ r.orders }} ออเดอร์</div></div><div class="fw-semibold text-nowrap">฿{{ r.revenue|floatformat:"0g" }}</div></li>
-      {% empty %}<li class="text-secondary">ยังไม่มีข้อมูล</li>{% endfor %}
-    </ul>
-  </div></div>
-  <div class="col-12"><div class="dash-card">
-    <div class="d-flex justify-content-between align-items-center mb-2"><h2 class="mb-0 d-flex align-items-center gap-2">{% icon "journal-check" %} กิจกรรมล่าสุด</h2><a href="{% url 'dashboard:audit_list' %}" class="link-dash">ดูทั้งหมด {% icon "arrow-right" %}</a></div>
-    <ul class="list-unstyled mb-0">
-      {% for a in s.recent_activity %}<li class="d-flex flex-wrap gap-2 align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}"><span class="chip">{{ a.action }}</span><span class="fw-medium">{{ a.object_repr|default:a.model }}</span><span class="small text-secondary ms-auto">{% if a.user %}{{ a.user.full_name }}{% else %}{{ a.actor_label|default:"ระบบ" }}{% endif %} · {{ a.created_at|timesince }} ที่แล้ว</span></li>
+  <!-- งานที่ต้องทำ -->
+  <div class="b-card b-todo">
+    <div class="b-head"><h2>{% icon "lightning-charge" %} ต้องทำตอนนี้</h2></div>
+    {% if s.pending_slips or s.expiring_7d or s.reviewing_orders %}
+    <div class="b-list">
+      {% if s.pending_slips %}<a href="{% url 'dashboard:slip_list' %}" class="b-row"><span class="b-dot is-red"></span><span class="flex-grow-1">สลิปรอแอดมินตรวจ</span><b>{{ s.pending_slips }}</b>{% icon "chevron-right" %}</a>{% endif %}
+      {% if s.reviewing_orders %}<a href="{% url 'dashboard:order_list' %}?status=reviewing" class="b-row"><span class="b-dot is-orange"></span><span class="flex-grow-1">ออเดอร์กำลังตรวจสลิป</span><b>{{ s.reviewing_orders }}</b>{% icon "chevron-right" %}</a>{% endif %}
+      {% if s.expiring_7d %}<a href="{% url 'dashboard:enrollment_list' %}" class="b-row"><span class="b-dot is-blue"></span><span class="flex-grow-1">สิทธิ์หมดอายุใน 7 วัน</span><b>{{ s.expiring_7d }}</b>{% icon "chevron-right" %}</a>{% endif %}
+    </div>
+    {% else %}
+    <div class="b-clear"><span class="icon-chip is-green">{% icon "check2-all" %}</span><div><b>ไม่มีงานค้าง</b><div class="small text-secondary">สลิปและออเดอร์ตรวจครบแล้ว</div></div></div>
+    {% endif %}
+    <div class="b-shortcuts">
+      <div class="small text-secondary mb-2">ทางลัด</div>
+      <div class="b-grid">
+        <a href="{% url 'dashboard:student_list' %}">{% icon "people" %}<span>นักเรียน</span></a>
+        <a href="{% url 'dashboard:enrollment_list' %}">{% icon "clock-history" %}<span>สิทธิ์เรียน</span></a>
+        <a href="{% url 'dashboard:order_list' %}">{% icon "wallet2" %}<span>ออเดอร์</span></a>
+        <a href="{% url 'dashboard:site_settings' %}">{% icon "gear" %}<span>ตั้งค่าเว็บ</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI เล็ก -->
+  <a class="b-card b-kpi" href="{% url 'dashboard:enrollment_list' %}?tab=active">
+    <span class="icon-chip sm is-red">{% icon "mortarboard" %}</span>
+    <div class="b-num">{{ s.active_enrollments }}</div><div class="b-label">กำลังเรียนอยู่</div>
+  </a>
+  <a class="b-card b-kpi" href="{% url 'dashboard:student_list' %}">
+    <span class="icon-chip sm is-orange">{% icon "person-plus" %}</span>
+    <div class="b-num">{{ s.signups_period }}</div><div class="b-label">สมัครใหม่ {{ s.days }} วัน <span class="text-secondary">· {{ s.new_students_7d }} ใน 7 วัน</span></div>
+  </a>
+  <a class="b-card b-kpi" href="{% url 'dashboard:student_list' %}">
+    <span class="icon-chip sm is-blue">{% icon "people" %}</span>
+    <div class="b-num">{{ s.students_total }}</div><div class="b-label">นักเรียนทั้งหมด</div>
+  </a>
+
+  <!-- ยอดขายแยกคอร์ส: แถบแนวนอน -->
+  <div class="b-card b-courses">
+    <div class="b-head"><h2>{% icon "trophy" %} คอร์สขายดี</h2><span class="small text-secondary">{{ s.days }} วัน</span></div>
+    {% with top=s.by_course.0.revenue %}
+    {% for r in s.by_course %}
+    <div class="b-bar">
+      <div class="d-flex justify-content-between gap-3 small mb-1"><span class="fw-medium text-truncate">{{ r.course__title }}</span><span class="fw-semibold text-nowrap">฿{{ r.revenue|floatformat:"0g" }}</span></div>
+      <div class="b-track"><i style="width: {% widthratio r.revenue top 100 %}%"></i></div>
+      <div class="small text-secondary mt-1">{{ r.orders }} ออเดอร์</div>
+    </div>
+    {% empty %}
+    <div class="b-empty is-light">ยังไม่มีข้อมูล</div>
+    {% endfor %}
+    {% endwith %}
+  </div>
+
+  <!-- กิจกรรมล่าสุด: ไทม์ไลน์ -->
+  <div class="b-card b-activity">
+    <div class="b-head"><h2>{% icon "journal-check" %} กิจกรรมล่าสุด</h2><a href="{% url 'dashboard:audit_list' %}" class="small">ดูทั้งหมด {% icon "arrow-right" %}</a></div>
+    <ol class="b-timeline">
+      {% for a in s.recent_activity %}
+      <li><span class="chip">{{ a.action }}</span> <span class="fw-medium">{{ a.object_repr|default:a.model }}</span><div class="small text-secondary">{% if a.user %}{{ a.user.full_name }}{% else %}{{ a.actor_label|default:"ระบบ" }}{% endif %} · {{ a.created_at|timesince }} ที่แล้ว</div></li>
       {% empty %}<li class="text-secondary small">ยังไม่มีกิจกรรม</li>{% endfor %}
-    </ul>
-  </div></div>
+    </ol>
+  </div>
 </div>
 {% endblock %}
 {% block extra_js %}
@@ -50,7 +101,7 @@
     const bars = document.querySelectorAll("#spark span");
     const vals = [...bars].map((b) => +b.dataset.v);
     const max = Math.max(...vals, 1);
-    bars.forEach((b, i) => (b.style.height = Math.max(3, (vals[i] / max) * 100) + "%"));
+    bars.forEach((b, i) => (b.style.height = Math.max(4, (vals[i] / max) * 100) + "%"));
   })();
 </script>
 {% endblock %}

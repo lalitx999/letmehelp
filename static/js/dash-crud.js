@@ -106,4 +106,12 @@
       if (s) { e.preventDefault(); s.focus(); }
     }
   });
+
+  // ปุ่มค้นหาในแถบบน: โฟกัสช่องค้นหาของหน้า (ซ่อนปุ่มถ้าหน้านั้นไม่มีช่องค้นหา)
+  const searchBtn = document.querySelector("[data-focus-search]");
+  if (searchBtn) {
+    const s = document.querySelector("[data-search]");
+    if (!s) searchBtn.hidden = true;
+    else searchBtn.addEventListener("click", () => { s.scrollIntoView({ block: "center", behavior: "smooth" }); s.focus({ preventScroll: true }); });
+  }
 })();
