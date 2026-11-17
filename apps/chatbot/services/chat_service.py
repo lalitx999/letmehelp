@@ -1,8 +1,13 @@
-"""แชทบอท: เรียก Claude (Anthropic SDK) ถ้าตั้ง ANTHROPIC_API_KEY ไม่เช่นนั้น/เมื่อเรียกไม่สำเร็จ ใช้บอทกติกา (faq_bot)"""
+"""แชทบอท: เรียก Claude (Anthropic SDK) ถ้าตั้ง ANTHROPIC_API_KEY ไม่เช่นนั้น/เมื่อเรียกไม่สำเร็จ ใช้บอทกติกา (faq_bot)
+
+เป็น async ทั้งเส้นทาง (view async + AsyncAnthropic) เพื่อไม่ให้การรอ AI นานหลายวินาทีกิน worker:
+เมื่อรันบน ASGI (uvicorn) ระหว่างรอ API ภายนอก worker ไปรับคำขออื่นได้ — ส่วนที่แตะฐานข้อมูลห่อด้วย sync_to_async
+"""
 import logging
 from dataclasses import dataclass
 
 import anthropic
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.cache import cache
 
@@ -38,14 +43,14 @@ def clean_history(raw) -> list[dict]:
     return out
 
 
-def is_rate_limited(ident: str) -> bool:
+async def is_rate_limited(ident: str) -> bool:
     key = f"chatbot:rate:{ident}"
-    if cache.add(key, 1, RATE_WINDOW):
+    if await cache.aadd(key, 1, RATE_WINDOW):
         return False
     try:
-        return cache.incr(key) > RATE_LIMIT
+        return await cache.aincr(key) > RATE_LIMIT
     except ValueError:  # key หมดอายุพอดี
-        cache.set(key, 1, RATE_WINDOW)
+        await cache.aset(key, 1, RATE_WINDOW)
         return False
 
 
@@ -53,8 +58,8 @@ def llm_enabled() -> bool:
     return bool(settings.ANTHROPIC_API_KEY)
 
 
-def _call_claude(system: str, history: list[dict]) -> str:
-    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=30.0, max_retries=1)
+async def _call_claude(system: str, history: list[dict]) -> str:
+    client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=30.0, max_retries=1)
     kwargs = dict(
         model=settings.CHATBOT_MODEL,
         max_tokens=1024,
@@ -65,13 +70,13 @@ def _call_claude(system: str, history: list[dict]) -> str:
     )
     if settings.CHATBOT_FALLBACK_MODEL:
         # ถ้าตัวกรองความปลอดภัยปฏิเสธ ให้ระบบเรียกโมเดลสำรองต่อในคำขอเดียวกัน
-        response = client.beta.messages.create(
+        response = await client.beta.messages.create(
             betas=["server-side-fallback-2026-06-01"],
             fallbacks=[{"model": settings.CHATBOT_FALLBACK_MODEL}],
             **kwargs,
         )
     else:
-        response = client.messages.create(**kwargs)
+        response = await client.messages.create(**kwargs)
 
     if response.stop_reason == "refusal":
         raise RuntimeError("model refused")
@@ -81,17 +86,20 @@ def _call_claude(system: str, history: list[dict]) -> str:
     return text
 
 
-def reply(*, history: list[dict], lesson: dict | None = None) -> Reply:
+def _system_prompt(lesson: dict | None) -> str:
+    """อ่านแคตตาล็อกจากฐานข้อมูล (sync) — เรียกผ่าน sync_to_async จากเส้นทาง async"""
+    if lesson:
+        return knowledge.tutor_system_prompt(lesson=lesson["title"], course=lesson["course"], category=lesson["category"])
+    return knowledge.public_system_prompt()
+
+
+async def reply(*, history: list[dict], lesson: dict | None = None) -> Reply:
     """lesson = {"title", "course", "category"} เมื่อผู้ใช้อยู่ในหน้าเรียน (โหมดติวเตอร์) ไม่มี = โหมดตอบคำถามทั่วไป"""
     last_user = history[-1]["content"] if history else ""
     if llm_enabled():
-        system = (
-            knowledge.tutor_system_prompt(lesson=lesson["title"], course=lesson["course"], category=lesson["category"])
-            if lesson
-            else knowledge.public_system_prompt()
-        )
+        system = await sync_to_async(_system_prompt)(lesson)
         try:
-            return Reply(_call_claude(system, history), "ai", [])
+            return Reply(await _call_claude(system, history), "ai", [])
         except (anthropic.APIError, RuntimeError) as exc:
             logger.warning("chatbot LLM failed, using FAQ fallback: %s", exc)
     if lesson:
@@ -100,5 +108,5 @@ def reply(*, history: list[dict], lesson: dict | None = None) -> Reply:
             "faq",
             [],
         )
-    text, suggestions = faq_bot.answer(last_user)
+    text, suggestions = await sync_to_async(faq_bot.answer)(last_user)  # faq_bot อ่านราคาจากฐานข้อมูล
     return Reply(text, "faq", suggestions)

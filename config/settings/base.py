@@ -13,6 +13,7 @@ DEBUG = False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 SITE_URL = env("SITE_URL", default="http://localhost:8000")
 SITE_NAME = "Let Me Help"
+DJANGO_ADMIN_ENABLED = env.bool("DJANGO_ADMIN_ENABLED", default=False)
 
 INSTALLED_APPS = [
     "django.contrib.admin",

@@ -1,7 +1,7 @@
 """หลังบ้าน: หมวดคอร์ส / คอร์ส / บท-คลิป-ไฟล์แนบ / แพ็กเกจ — view บางๆ: รับ request → เรียก service → ตอบ"""
 import json
 
-from django.http import Http404, JsonResponse
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 

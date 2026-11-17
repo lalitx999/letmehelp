@@ -48,9 +48,10 @@ def reminder_days() -> list[int]:
 
 
 def save_many(values: dict) -> None:
-    for key in EDITABLE:
-        if key in values:
-            SiteSetting.objects.update_or_create(key=key, defaults={"value": values[key].strip()})
+    """บันทึกหลายคีย์ด้วย upsert query เดียว (key เป็น unique) แทน update_or_create ทีละคีย์"""
+    rows = [SiteSetting(key=key, value=values[key].strip()) for key in EDITABLE if key in values]
+    if rows:
+        SiteSetting.objects.bulk_create(rows, update_conflicts=True, unique_fields=["key"], update_fields=["value", "updated_at"])
     cache.delete(CACHE_KEY)
 
 

@@ -34,12 +34,16 @@ python manage.py runserver
 
 ```bash
 DJANGO_SETTINGS_MODULE=config.settings.production python manage.py collectstatic --noinput
-gunicorn config.wsgi:application --bind 127.0.0.1:8000
+# ASGI (แนะนำ): แชทบอทเป็น async view — ระหว่างรอ Claude worker ไปรับคำขออื่นได้
+gunicorn config.asgi:application -k uvicorn_worker.UvicornWorker --workers 3 --bind 127.0.0.1:8000
+# (ยังรันแบบ WSGI ได้: gunicorn config.wsgi:application — ทำงานถูกต้องแต่การรอ AI จะกิน worker 1 ตัวต่อคำขอ)
 celery -A config worker -l info
 celery -A config beat -l info      # ตัวตั้งเวลาแจ้งเตือนหมดอายุ
 ```
 
 - ตั้ง `DJANGO_SETTINGS_MODULE=config.settings.production` ใน service/env, `DEBUG=False` ถูกบังคับในไฟล์นั้น
+- `/django-admin/` (Django admin หน้าเดิม) **ปิดใน production** — แอดมินใช้ `/dashboard/` เปิดชั่วคราวได้ด้วย `DJANGO_ADMIN_ENABLED=True`
+- Celery worker/beat ใช้ settings production เป็นค่าเริ่มต้นแล้ว (เหมือน wsgi/asgi)
 - Nginx เสิร์ฟ `/static/` (`staticfiles/`) และ `/media/` (`media/`) โดยตรง หรือใช้ WhiteNoise ที่เปิดไว้แล้ว
 - **`private_media/` ห้ามเสิร์ฟผ่าน Nginx** (สลิป, PDF ประกอบการเรียน, รายงาน) — Django ตรวจสิทธิ์ก่อนส่งไฟล์
 - PDF ภาษาไทย: ตั้ง `PDF_FONT_PATH` เป็นไฟล์ .ttf (เช่น Sarabun/Noto Sans Thai) บน server

@@ -1,8 +1,7 @@
-from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.core.decorators import staff_required
@@ -72,7 +71,7 @@ def order_status(request, order_id):
             "order_status": order.status,
             "slip_status": slip.get("status", ""),
             "reason": slip.get("reason", ""),
-            "learn_url": f"/learn/my-courses/" if order.status == Order.Status.PAID else "",
+            "learn_url": reverse("learning:my_courses") if order.status == Order.Status.PAID else "",
         }
     )
 

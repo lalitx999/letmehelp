@@ -7,8 +7,6 @@ from django.urls import include, path
 from apps.core.sitemaps import SITEMAPS
 
 urlpatterns = [
-    # Django admin เดิมเก็บไว้ให้ผู้ดูแลระบบ (superuser) เท่านั้น — ผู้ดูแลเว็บใช้ /dashboard/
-    path("django-admin/", admin.site.urls),
     path("dashboard/", include("apps.dashboard.urls")),
     path("accounts/", include("apps.accounts.urls")),
     path("courses/", include("apps.courses.urls")),
@@ -18,6 +16,11 @@ urlpatterns = [
     path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="sitemap"),
     path("", include("apps.core.urls")),
 ]
+
+# Django admin หน้าเดิมไม่ใช้กับผู้ใช้งาน (แอดมินเว็บใช้ /dashboard/) — ปิดใน production เพื่อลดช่องโจมตี
+# เปิดได้เมื่อจำเป็นด้วย DJANGO_ADMIN_ENABLED=True ใน .env (ตอนพัฒนาเปิดไว้)
+if settings.DJANGO_ADMIN_ENABLED:
+    urlpatterns.insert(0, path("django-admin/", admin.site.urls))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

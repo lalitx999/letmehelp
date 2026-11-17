@@ -456,3 +456,78 @@ class TelegramNotifyTests(DashCase):
 
     def test_default_reminders_for_one_year_course(self):
         self.assertEqual(settings_service.reminder_days(), [30, 7, 1])
+
+
+class CodingRulesTests(DashCase):
+    """กฎโค้ด: bulk แทนการ query ในลูป, logic อยู่ใน service, งานช้าเข้า Celery, ปิด django-admin ใน production"""
+
+    def _add_sections(self, n):
+        for i in range(n):
+            sec = Section.objects.create(course=self.course, title=f"X{i}", order=10 + i)
+            Lesson.objects.bulk_create(Lesson(section=sec, title=f"L{j}", youtube_video_id="M7lc1UVf-VE", order=j) for j in range(3))
+
+    def _dup_queries(self):
+        from apps.courses.services import catalog_service
+
+        with CaptureQueriesContext(connection) as ctx:
+            new = catalog_service.duplicate_course(self.course, self.req)
+        return new, len(ctx.captured_queries)
+
+    def test_duplicate_course_query_count_does_not_grow_with_sections(self):
+        self._add_sections(1)
+        new1, q1 = self._dup_queries()
+        Course.all_objects.filter(pk=new1.pk).update(slug="other")  # ให้รอบสองไม่ต้องวนหา slug ใหม่ (เทียบแค่ผลของจำนวนบท)
+        self._add_sections(4)
+        new2, q2 = self._dup_queries()
+        self.assertEqual(q1, q2)
+        self.assertEqual(Lesson.objects.filter(section__course=new2).count(), Lesson.objects.filter(section__course=self.course).count())
+        self.assertEqual(list(new2.sections.order_by("order").values_list("title", flat=True)),
+                         list(self.course.sections.order_by("order").values_list("title", flat=True)))
+
+    def test_move_section_reorders_with_single_update(self):
+        from apps.courses.services import catalog_service
+
+        self._add_sections(3)
+        last = self.course.sections.order_by("-order").first()
+        catalog_service.move_section(last, "up")
+        titles = list(self.course.sections.order_by("order").values_list("title", flat=True))
+        self.assertEqual(titles, ["S", "X0", "X2", "X1"])
+        self.assertEqual(list(self.course.sections.order_by("order").values_list("order", flat=True)), [1, 2, 3, 4])
+
+    def test_settings_save_many_upserts(self):
+        settings_service.save_many({"ANNOUNCEMENT": "a"})
+        settings_service.save_many({"ANNOUNCEMENT": "b", "LINE_CONTACT_URL": "https://line.me/ti/p/x"})
+        self.assertEqual(SiteSetting.objects.get(key="ANNOUNCEMENT").value, "b")
+        self.assertEqual(SiteSetting.objects.filter(key="ANNOUNCEMENT").count(), 1)
+
+    def test_bulk_remind_counts_only_existing_and_queues_celery(self):
+        enr = enrollment_service.grant_or_extend(user=self.student, course=self.course)
+        self.client.force_login(self.admin)
+        with mock.patch("apps.notifications.services.reminder_service.send_expiry_email.delay") as delay:
+            r = self.client.post(reverse("dashboard:enrollment_bulk"), {"action": "remind", "ids": [enr.pk, 999999]},
+                                 content_type="application/json", HTTP_X_REQUESTED_WITH="fetch")
+        self.assertEqual(r.json()["message"], "ส่งอีเมลเตือน 1 รายการแล้ว")
+        delay.assert_called_once()
+
+    def test_export_request_queues_task_after_commit(self):
+        self.client.force_login(self.admin)
+        with mock.patch("apps.dashboard.services.export_service.generate_report_task.delay") as delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                self.client.post(reverse("dashboard:exports"), {"kind": "sales", "fmt": "xlsx"})
+        delay.assert_called_once()
+        self.assertTrue(AuditLog.objects.filter(action="export").exists())
+
+    def test_django_admin_disabled_unless_flag(self):
+        import importlib
+
+        from django.urls import clear_url_caches
+
+        import config.urls
+
+        try:
+            with override_settings(DJANGO_ADMIN_ENABLED=False):
+                clear_url_caches(); importlib.reload(config.urls)
+                self.assertFalse(any(str(p.pattern) == "django-admin/" for p in config.urls.urlpatterns))
+        finally:
+            clear_url_caches(); importlib.reload(config.urls)
+        self.assertTrue(any(str(p.pattern) == "django-admin/" for p in config.urls.urlpatterns))  # ตอนพัฒนาเปิดไว้

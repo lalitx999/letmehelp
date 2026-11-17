@@ -1,8 +1,6 @@
 import logging
 
 from celery import shared_task
-from django.conf import settings
-from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.enrollments.selectors.enrollment_selector import expiring_enrollments
@@ -44,15 +42,22 @@ def process_enrollment_expiry():
     from apps.core.services import settings_service
 
     for days in settings_service.reminder_days():
-        for enr in expiring_enrollments(days):
-            kind = f"expiry_{days}d"
-            try:
-                with transaction.atomic():
-                    NotificationLog.objects.create(enrollment=enr, kind=kind, expires_at_snapshot=enr.expires_at)
-            except IntegrityError:
-                continue  # เคยส่งแล้ว
+        kind = f"expiry_{days}d"
+        candidates = list(expiring_enrollments(days))
+        if not candidates:
+            continue
+        # คัดคนที่เคยเตือนรอบนี้แล้วออกด้วย query เดียว แล้วบันทึก log แบบ bulk
+        # (ignore_conflicts + unique constraint กันซ้ำอีกชั้น — beat รันทีละรอบอยู่แล้ว)
+        already = set(
+            NotificationLog.objects.filter(kind=kind, enrollment__in=candidates).values_list("enrollment_id", "expires_at_snapshot")
+        )
+        fresh = [e for e in candidates if (e.pk, e.expires_at) not in already]
+        NotificationLog.objects.bulk_create(
+            [NotificationLog(enrollment=e, kind=kind, expires_at_snapshot=e.expires_at) for e in fresh], ignore_conflicts=True
+        )
+        for enr in fresh:
             send_expiry_email.delay(enr.pk, days)
-            sent += 1
+        sent += len(fresh)
     return {"expired": expired, "reminders_queued": sent}
 
 

@@ -15,8 +15,7 @@ from apps.dashboard.forms import ReportForm, SiteSettingsForm
 from apps.dashboard.models import ReportExport
 from apps.dashboard.selectors import stats_selector
 from apps.dashboard.selectors.list_params import paginate
-from apps.dashboard.services import trash_service
-from apps.dashboard.tasks import generate_report_task
+from apps.dashboard.services import export_service, trash_service
 
 
 @staff_required
@@ -108,13 +107,10 @@ def trash_purge(request, kind, obj_id):
 def exports(request):
     form = ReportForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        export = ReportExport.objects.create(requested_by=request.user, **form.cleaned_data)
-        audit_service.log(request=request, action="export", obj=export, label=f"รายงาน {export.get_kind_display()} ({export.fmt})")
-        generate_report_task.delay(export.pk)
+        export_service.request_export(data=form.cleaned_data, request=request)
         messages.info(request, "กำลังสร้างรายงาน เสร็จแล้วจะขึ้นปุ่มดาวน์โหลด")
         return redirect("dashboard:exports")
-    items = ReportExport.objects.only("id", "kind", "fmt", "status", "error", "created_at", "date_from", "date_to")[:20]
-    return render(request, "dashboard/exports.html", {"form": form, "items": items})
+    return render(request, "dashboard/exports.html", {"form": form, "items": export_service.recent_exports()})
 
 
 @staff_required

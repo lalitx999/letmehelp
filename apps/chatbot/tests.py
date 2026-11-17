@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import anthropic
+from asgiref.sync import async_to_sync
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -87,8 +88,8 @@ class ChatViewTests(ChatbotBase):
     @override_settings(ANTHROPIC_API_KEY="k")
     def test_tutor_mode_requires_enrollment(self):
         client_cls = mock.MagicMock()
-        client_cls.return_value.beta.messages.create.return_value = stub_response("อธิบาย tense")
-        with mock.patch.object(chat_service.anthropic, "Anthropic", client_cls):
+        client_cls.return_value.beta.messages.create = mock.AsyncMock(return_value=stub_response("อธิบาย tense"))
+        with mock.patch.object(chat_service.anthropic, "AsyncAnthropic", client_cls):
             self.client.force_login(self.user)
             self.post([{"role": "user", "content": "อธิบายหน่อย"}], lesson_id=self.lesson.pk)
             system_no_access = client_cls.return_value.beta.messages.create.call_args.kwargs["system"]
@@ -106,11 +107,11 @@ class LlmPathTests(ChatbotBase):
         client_cls = mock.MagicMock()
         client_cls.return_value.beta.messages.create = create_mock
         client_cls.return_value.messages.create = create_mock
-        with mock.patch.object(chat_service.anthropic, "Anthropic", client_cls):
-            return chat_service.reply(history=[{"role": "user", "content": "ราคา"}])
+        with mock.patch.object(chat_service.anthropic, "AsyncAnthropic", client_cls):
+            return async_to_sync(chat_service.reply)(history=[{"role": "user", "content": "ราคา"}])
 
     def test_uses_claude_and_prompt_has_live_catalog(self):
-        create = mock.MagicMock(return_value=stub_response("คอร์สนี้ 1,490 บาท"))
+        create = mock.AsyncMock(return_value=stub_response("คอร์สนี้ 1,490 บาท"))
         r = self.run_reply(create)
         self.assertEqual((r.source, r.text), ("ai", "คอร์สนี้ 1,490 บาท"))
         kw = create.call_args.kwargs
@@ -121,11 +122,22 @@ class LlmPathTests(ChatbotBase):
         self.assertNotIn("temperature", kw)                  # โมเดลรุ่นนี้ไม่รับ sampling params
 
     def test_refusal_falls_back_to_faq(self):
-        r = self.run_reply(mock.MagicMock(return_value=stub_response(stop_reason="refusal")))
+        r = self.run_reply(mock.AsyncMock(return_value=stub_response(stop_reason="refusal")))
         self.assertEqual(r.source, "faq")
 
     def test_api_error_falls_back_to_faq(self):
         err = anthropic.APIConnectionError(request=mock.MagicMock())
-        r = self.run_reply(mock.MagicMock(side_effect=err))
+        r = self.run_reply(mock.AsyncMock(side_effect=err))
         self.assertEqual(r.source, "faq")
         self.assertIn("1,490", r.text)
+
+
+class AsyncViewTests(TestCase):
+    def test_chat_view_is_async(self):
+        """งานเรียก AI ต้องไม่ผูก worker แบบ sync (กฎข้อ 3) — view และการเรียก Claude เป็น coroutine"""
+        import inspect
+
+        from apps.chatbot import views
+
+        self.assertTrue(inspect.iscoroutinefunction(views.chat))
+        self.assertTrue(inspect.iscoroutinefunction(chat_service._call_claude))

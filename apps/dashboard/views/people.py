@@ -3,7 +3,7 @@ import json
 
 from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
@@ -19,7 +19,7 @@ from apps.enrollments.forms import ExtendForm, GrantForm
 from apps.enrollments.models import Enrollment
 from apps.enrollments.services import enrollment_service
 from apps.learning.selectors.learning_selector import study_stats
-from apps.notifications.tasks import send_expiry_email
+from apps.notifications.services import reminder_service
 
 
 # ---------- นักเรียน ----------
@@ -145,8 +145,8 @@ def enrollment_restore(request, enrollment_id):
 @json_action
 def enrollment_remind(request, enrollment_id):
     """ส่งอีเมลเตือนต่ออายุรายคน (เข้า Celery ไม่ค้าง request)"""
-    enr = get_object_or_404(Enrollment.objects.only("id", "expires_at"), pk=enrollment_id)
-    send_expiry_email.delay(enr.pk, (enr.expires_at - timezone.now()).days)
+    if not reminder_service.queue_expiry_reminders([enrollment_id]):
+        raise ActionError("ไม่พบสิทธิ์เรียนนี้")
     return "ส่งอีเมลเตือนแล้ว"
 
 
@@ -158,7 +158,5 @@ def enrollment_bulk(request):
         raise ActionError("ยังไม่ได้เลือกรายการ")
     if body.get("action") != "remind":
         raise ActionError("คำสั่งไม่ถูกต้อง")
-    now = timezone.now()
-    for enr in Enrollment.objects.filter(pk__in=ids).only("id", "expires_at"):
-        send_expiry_email.delay(enr.pk, (enr.expires_at - now).days)
-    return f"ส่งอีเมลเตือน {len(ids)} รายการแล้ว"
+    n = reminder_service.queue_expiry_reminders(ids)
+    return f"ส่งอีเมลเตือน {n} รายการแล้ว"

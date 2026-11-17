@@ -2,7 +2,6 @@
 ลบ = ถังขยะ (soft delete) กู้คืนได้ · ข้อผิดพลาดทางธุรกิจ throw ActionError ให้ view แสดงข้อความ"""
 from django.db import transaction
 from django.utils import timezone
-from django.utils.text import slugify
 
 from apps.core.services import audit_service
 from apps.courses.models import Category, Course, CoursePackage, Lesson, LessonAttachment, Section
@@ -79,13 +78,15 @@ def duplicate_course(course: Course, request) -> Course:
         description=course.description, cover_url=course.cover_url, price=course.price, promo_price=course.promo_price, promo_ends_on=course.promo_ends_on, book_url=course.book_url,
         access_days=course.access_days, is_published=False, is_featured=False,
     )
-    for sec in course.sections.all():
-        ns = Section.objects.create(course=new, title=sec.title, order=sec.order)
-        Lesson.objects.bulk_create(
-            Lesson(section=ns, title=l.title, youtube_video_id=l.youtube_video_id, duration_seconds=l.duration_seconds,
-                   order=l.order, is_free_preview=l.is_free_preview)
-            for l in sec.lessons.all()
-        )
+    # บททั้งหมดสร้างใน query เดียว (PostgreSQL คืน pk ให้จาก bulk_create) แล้วสร้างคลิปทั้งหมดอีก query เดียว
+    old_sections = list(course.sections.prefetch_related("lessons").order_by("order", "id"))
+    new_sections = Section.objects.bulk_create(Section(course=new, title=s.title, order=s.order) for s in old_sections)
+    Lesson.objects.bulk_create(
+        Lesson(section=ns, title=l.title, youtube_video_id=l.youtube_video_id, duration_seconds=l.duration_seconds,
+               order=l.order, is_free_preview=l.is_free_preview)
+        for old, ns in zip(old_sections, new_sections)
+        for l in old.lessons.all()
+    )
     CoursePackage.objects.bulk_create(
         CoursePackage(course=new, label=p.label, days=p.days, price=p.price, is_active=p.is_active) for p in course.packages.all()
     )
@@ -110,10 +111,14 @@ def bulk_course_action(ids, action: str, request) -> str:
 
 # ---- บท / คลิป -----------------------------------------------------------------
 def _renumber(items):
+    """จัดลำดับใหม่ 1..n — อัปเดตเฉพาะแถวที่เปลี่ยนด้วย bulk_update ครั้งเดียว (ไม่ save ทีละแถว)"""
+    changed = []
     for i, obj in enumerate(items, start=1):
         if obj.order != i:
             obj.order = i
-            obj.save(update_fields=["order"])
+            changed.append(obj)
+    if changed:
+        type(changed[0]).objects.bulk_update(changed, ["order"])
 
 
 def _move(obj, siblings, direction: str):
