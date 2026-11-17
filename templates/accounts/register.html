@@ -3,7 +3,7 @@
 {% block title %}สมัครสมาชิก — Let Me Help{% endblock %}
 {% block content %}
 <div class="container auth">
-  <div class="row g-0 surface overflow-hidden mx-auto" style="max-width: 980px;">
+  <div class="row g-0 auth-shell overflow-hidden mx-auto" style="max-width: 980px;">
     <div class="col-lg-5 p-2 p-lg-3">{% include "accounts/_side.html" with image="img/covers/auth-register.jpg" label="เริ่มต้นใช้งาน" heading="สมัครสมาชิกไม่กี่ช่อง ก็เริ่มเรียนได้เลย" %}</div>
     <div class="col-lg-7">
       <div class="auth-card">
@@ -47,9 +47,9 @@
             <label class="form-check-label small" for="{{ form.accept_terms.id_for_label }}">ฉันได้อ่านและยอมรับ <a href="{% url 'core:terms' %}" target="_blank" rel="noopener">ข้อกำหนดการใช้งาน</a> และ <a href="{% url 'core:privacy' %}" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a> (ผู้สมัครอายุต่ำกว่า 20 ปี ควรได้รับความยินยอมจากผู้ปกครอง)</label>
             {% for e in form.accept_terms.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
           </div>
-          <button class="btn btn-primary btn-lg w-100">สมัครสมาชิก {% icon "arrow-right" "icon-arrow" %}</button>
+          <button class="btn btn-dark btn-lg w-100">สมัครสมาชิก {% icon "arrow-right" "icon-arrow" %}</button>
         </form>
-        <p class="text-center text-secondary mt-4 mb-0">มีบัญชีแล้ว? <a href="{% url 'accounts:login' %}" class="fw-semibold">เข้าสู่ระบบ</a></p>
+        <div class="auth-alt">มีบัญชีแล้ว? <a href="{% url 'accounts:login' %}" class="btn btn-outline-dark btn-sm">เข้าสู่ระบบ</a></div>
       </div>
     </div>
   </div>

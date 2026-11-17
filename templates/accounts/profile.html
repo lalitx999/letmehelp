@@ -2,17 +2,35 @@
 {% load ui %}
 {% block title %}ข้อมูลของฉัน — Let Me Help{% endblock %}
 {% block content %}
-<div class="container section" style="max-width: 640px;">
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <span class="avatar" style="width:56px;height:56px;font-size:1.4rem">{{ user.full_name|initial }}</span>
-    <div><h1 class="h4 mb-0">{{ user.full_name }}</h1><div class="text-secondary small">{{ user.email }}</div></div>
+<section class="page-hero">
+  <div class="container" style="max-width: 920px;">
+    <nav class="crumbs"><a href="{% url 'learning:my_courses' %}">{% icon "arrow-left" %} Dashboard</a></nav>
+    <div class="d-flex align-items-center gap-3 mt-3">
+      <span class="avatar" style="width:64px;height:64px;font-size:1.5rem;background:var(--night);color:#fff;box-shadow:var(--shadow-md)">{{ user.full_name|initial }}</span>
+      <div class="min-w-0"><h1 class="my-0" style="font-size:clamp(1.6rem,3.5vw,2.2rem)"><span class="soft">ข้อมูลของ</span>ฉัน</h1><div class="text-secondary small text-truncate">{{ user.email }}</div></div>
+    </div>
   </div>
-  <form method="post" class="surface p-4">
-    {% csrf_token %}
-    <div class="mb-3"><label class="form-label">อีเมล (ใช้เข้าสู่ระบบ)</label><div class="input-group"><span class="input-group-text">{% icon "envelope" %}</span><input class="form-control" value="{{ user.email }}" disabled></div></div>
-    <div class="mb-3"><label class="form-label" for="{{ form.full_name.id_for_label }}">ชื่อ-นามสกุล</label><div class="input-group"><span class="input-group-text">{% icon "person" %}</span>{{ form.full_name }}</div>{% for e in form.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
-    <div class="mb-4"><label class="form-label" for="{{ form.phone.id_for_label }}">เบอร์โทร</label><div class="input-group"><span class="input-group-text">{% icon "telephone" %}</span>{{ form.phone }}</div>{% for e in form.phone.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
-    <div class="d-flex flex-wrap gap-2"><button class="btn btn-dark">{% icon "check2" %} บันทึกข้อมูล</button><a href="{% url 'accounts:password_change' %}" class="btn btn-outline-dark">{% icon "lock" %} เปลี่ยนรหัสผ่าน</a></div>
-  </form>
+</section>
+<div class="container section pt-2" style="max-width: 920px;">
+  <div class="row g-4">
+    <div class="col-md-7">
+      <form method="post" class="surface p-4 p-lg-5" style="box-shadow: var(--shadow-md);">
+        {% csrf_token %}
+        <h2 class="h5 mb-4">ข้อมูลส่วนตัว</h2>
+        <div class="mb-3"><label class="form-label">อีเมล (ใช้เข้าสู่ระบบ)</label><div class="input-group"><span class="input-group-text">{% icon "envelope" %}</span><input class="form-control" value="{{ user.email }}" disabled></div></div>
+        <div class="mb-3"><label class="form-label" for="{{ form.full_name.id_for_label }}">ชื่อ-นามสกุล</label><div class="input-group"><span class="input-group-text">{% icon "person" %}</span>{{ form.full_name }}</div>{% for e in form.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+        <div class="mb-4"><label class="form-label" for="{{ form.phone.id_for_label }}">เบอร์โทร</label><div class="input-group"><span class="input-group-text">{% icon "telephone" %}</span>{{ form.phone }}</div>{% for e in form.phone.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+        <button class="btn btn-dark">{% icon "check2" %} บันทึกข้อมูล</button>
+      </form>
+    </div>
+    <div class="col-md-5">
+      <div class="d-grid gap-3">
+        <a href="{% url 'accounts:password_change' %}" class="surface tile hover-lift"><span class="icon-chip sm is-ink">{% icon "lock" %}</span><div><h3>เปลี่ยนรหัสผ่าน</h3><p>ตั้งรหัสใหม่ที่จำง่ายแต่เดายาก</p></div><span class="go">{% icon "arrow-right" %}</span></a>
+        <a href="{% url 'learning:my_courses' %}" class="surface tile hover-lift"><span class="icon-chip sm is-red">{% icon "collection-play" %}</span><div><h3>คอร์สของฉัน</h3><p>เรียนต่อจากที่ค้างไว้</p></div><span class="go">{% icon "arrow-right" %}</span></a>
+        <a href="{% url 'learning:study' %}" class="surface tile hover-lift"><span class="icon-chip sm is-orange">{% icon "graph-up" %}</span><div><h3>สถิติการเรียน</h3><p>เวลาเรียนและวันต่อเนื่อง</p></div><span class="go">{% icon "arrow-right" %}</span></a>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-outline-dark w-100">{% icon "box-arrow-right" %} ออกจากระบบ</button></form>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
