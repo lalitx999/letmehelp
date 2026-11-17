@@ -77,6 +77,8 @@ chown root:letmehelp "$APP/.env"
 chmod 640 "$APP/.env"
 # deployer ต้องอ่าน .env ได้ตอนรัน migrate/collectstatic
 usermod -aG letmehelp "$DEPLOYER"
+# อ่าน log ของบริการได้ (journalctl -u letmehelp-web) โดยไม่ต้อง sudo
+usermod -aG systemd-journal "$DEPLOYER"
 
 echo "==> systemd + nginx"
 cp "$HERE"/systemd/letmehelp-*.service /etc/systemd/system/
