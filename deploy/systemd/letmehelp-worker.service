@@ -1,0 +1,22 @@
+# Celery worker: อีเมล, Telegram, ตรวจสลิป, สร้างรายงาน PDF/Excel
+[Unit]
+Description=Let Me Help Celery worker
+After=network.target postgresql.service redis-server.service
+Requires=redis-server.service
+
+[Service]
+User=letmehelp
+Group=letmehelp
+WorkingDirectory=/srv/letmehelp/app
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+ExecStart=/srv/letmehelp/venv/bin/celery -A config worker -l info --concurrency 2
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/letmehelp/app/media /srv/letmehelp/app/private_media
+
+[Install]
+WantedBy=multi-user.target

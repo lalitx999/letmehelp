@@ -1,0 +1,25 @@
+# เว็บหลัก: gunicorn + uvicorn worker (ASGI) — แชทบอทที่รอ AI ไม่กิน worker
+[Unit]
+Description=Let Me Help web (gunicorn ASGI)
+After=network.target postgresql.service redis-server.service
+Requires=postgresql.service
+
+[Service]
+User=letmehelp
+Group=letmehelp
+WorkingDirectory=/srv/letmehelp/app
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+ExecStart=/srv/letmehelp/venv/bin/gunicorn config.asgi:application \
+    -k uvicorn_worker.UvicornWorker --workers 3 --bind 127.0.0.1:8000 \
+    --timeout 60 --graceful-timeout 30 --access-logfile -
+Restart=always
+RestartSec=3
+# จำกัดสิทธิ์: เขียนได้เฉพาะโฟลเดอร์ไฟล์อัปโหลด
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/letmehelp/app/media /srv/letmehelp/app/private_media
+
+[Install]
+WantedBy=multi-user.target

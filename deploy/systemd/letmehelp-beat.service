@@ -1,0 +1,21 @@
+# Celery beat: ตั้งเวลาแจ้งเตือนสิทธิ์หมดอายุ (ตารางเก็บใน DB ผ่าน django-celery-beat)
+[Unit]
+Description=Let Me Help Celery beat
+After=network.target postgresql.service redis-server.service
+Requires=redis-server.service
+
+[Service]
+User=letmehelp
+Group=letmehelp
+WorkingDirectory=/srv/letmehelp/app
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+ExecStart=/srv/letmehelp/venv/bin/celery -A config beat -l info
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

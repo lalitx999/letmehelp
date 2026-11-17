@@ -18,3 +18,6 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])  # noqa: F40
 SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# ไม่เข้า HSTS preload list โดยเจตนา (ถอนออกยากหลายเดือน) — เปิดได้ภายหลังเมื่อ HTTPS เสถียรแล้ว
+SILENCED_SYSTEM_CHECKS = ["security.W021"]

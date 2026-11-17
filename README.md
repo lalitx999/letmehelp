@@ -32,6 +32,16 @@ python manage.py runserver
 
 ## Production
 
+### Deploy ขึ้น VPS (โฟลเดอร์ `deploy/`)
+
+1. ครั้งแรก บน VPS: อัปโหลด `deploy/` แล้วรัน `sudo bash deploy/setup_server.sh โดเมน.com`
+   — ติดตั้ง PostgreSQL/Redis/Nginx/firewall/swap, สร้าง `.env` พร้อม SECRET_KEY และรหัส DB แบบสุ่ม (บนเครื่องนั้นเท่านั้น), ลง systemd 3 ตัว
+2. จาก Mac: `bash deploy/push.sh` — เทส → rsync เฉพาะโค้ด (ไม่ส่ง .env/ไฟล์ลูกค้า) → migrate/collectstatic/check → restart → health check
+3. HTTPS: `sudo certbot --nginx -d โดเมน.com -d www.โดเมน.com --redirect`
+4. ดู log: `journalctl -u letmehelp-web -f` (และ `letmehelp-worker`, `letmehelp-beat`)
+
+### คำสั่งที่ systemd ใช้
+
 ```bash
 DJANGO_SETTINGS_MODULE=config.settings.production python manage.py collectstatic --noinput
 # ASGI (แนะนำ): แชทบอทเป็น async view — ระหว่างรอ Claude worker ไปรับคำขออื่นได้
