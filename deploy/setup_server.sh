@@ -88,6 +88,8 @@ systemctl daemon-reload
 systemctl enable letmehelp-web letmehelp-worker letmehelp-beat
 sed "s/__DOMAIN__/$DOMAIN/g" "$HERE/nginx.conf" > /etc/nginx/sites-available/letmehelp
 ln -sf /etc/nginx/sites-available/letmehelp /etc/nginx/sites-enabled/letmehelp
+cp "$HERE/nginx-catchall.conf" /etc/nginx/sites-available/letmehelp-catchall
+ln -sf /etc/nginx/sites-available/letmehelp-catchall /etc/nginx/sites-enabled/letmehelp-catchall
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
