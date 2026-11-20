@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="container-xl py-5">
+  <div class="surface p-4 p-lg-5 mx-auto text-center" style="max-width: 640px;">
+    <span class="icon-chip is-blue mb-3">{% icon "hourglass-split" %}</span>
+    <h1 class="h3">{{ course.title }}</h1>
+    {% if enrollment %}
+      <p class="text-secondary mb-1">ชำระเงินเรียบร้อย สิทธิ์เรียนของคุณเปิดแล้ว{% if enrollment.expires_at|date:"Y" < "2100" %} (ถึง {{ enrollment.expires_at|date:"j M Y" }}){% endif %}</p>
+      <p class="text-secondary">ผู้สอนกำลังอัปโหลดบทเรียนของคอร์สนี้ เมื่อพร้อมแล้วจะเข้าเรียนได้ทันทีจากหน้าแดชบอร์ด</p>
+    {% else %}
+      <p class="text-secondary">คอร์สนี้กำลังเตรียมบทเรียน กลับมาดูอีกครั้งเร็วๆ นี้</p>
+    {% endif %}
+    <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+      <a href="{% url 'learning:my_courses' %}" class="btn btn-dark">{% icon "arrow-left" %} ไปแดชบอร์ด</a>
+      {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" class="btn btn-outline-dark" target="_blank" rel="noopener">ติดต่อผู้สอนทาง LINE</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -19,7 +19,7 @@ def notify_admins(text: str):
 
 @shared_task(autoretry_for=(telegram_service.TelegramError,), retry_backoff=True, max_retries=3)
 def notify_slip_submitted(slip_id: int):
-    """แจ้งแอดมินว่ามีสลิปใหม่: ส่งรูปสลิป + รายละเอียดออเดอร์ + ลิงก์ไปหน้าตรวจสลิป"""
+    """แจ้งแอดมินหลังตรวจสลิป: รูปสลิป + รายละเอียดออเดอร์ + ผลตรวจ + ลิงก์ไปหน้าตรวจสลิป (ข้อความเดียว)"""
     if not telegram_service.enabled():
         return 0
     import os
@@ -32,6 +32,11 @@ def notify_slip_submitted(slip_id: int):
     slip = PaymentSlip.objects.select_related("order__user", "order__course").get(pk=slip_id)
     order, user = slip.order, slip.order.user
     package = order.package_label or (f"{order.duration_days} วัน" if order.duration_days else "")
+    result = {
+        PaymentSlip.Status.VERIFIED: "✅ ผ่านอัตโนมัติ — เปิดสิทธิ์เรียนแล้ว",
+        PaymentSlip.Status.MANUAL_REVIEW: f"⚠️ รอแอดมินตรวจ — {slip.reason}",
+        PaymentSlip.Status.REJECTED: f"❌ ไม่ผ่าน — {slip.reason}",
+    }.get(slip.status, "⏳ กำลังตรวจสลิป")
     lines = [
         f"🧾 สลิปใหม่ · ออเดอร์ #{order.pk}" + (" (ต่ออายุ)" if order.is_renewal else ""),
         f"👤 {user.full_name}",
@@ -41,7 +46,7 @@ def notify_slip_submitted(slip_id: int):
         f"💰 ยอดที่ต้องชำระ: ฿{order.amount:,.2f}",
         f"⏰ {timezone.localtime(slip.created_at):%d/%m/%Y %H:%M}",
         "",
-        "ระบบกำลังตรวจสลิปอัตโนมัติ จะแจ้งผลอีกครั้ง",
+        result,
         f"🔗 ตรวจสลิปในหลังบ้าน: {settings.SITE_URL}{reverse('dashboard:slip_list')}",
     ]
     try:

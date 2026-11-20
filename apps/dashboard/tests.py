@@ -451,7 +451,7 @@ class TelegramNotifyTests(DashCase):
                 mock.patch("apps.payments.services.slip_verification_service.verify_slip", return_value="manual_review"), \
                 self.captureOnCommitCallbacks(execute=True):
             slip = order_service.submit_slip(order=order, image=SimpleUploadedFile("s.png", PNG, "image/png"))
-        notify.assert_called_once_with(slip.pk)  # รูปสลิปส่งก่อนเริ่มตรวจ (ดู apps/payments/tests.py)
+        notify.delay.assert_called_once_with(slip.pk)  # ตรวจเสร็จแล้วส่งรูปสลิป + ผลตรวจ (ดู apps/payments/tests.py)
         with mock.patch("apps.notifications.tasks.notify_admins.delay") as notify, self.captureOnCommitCallbacks(execute=True):
             order_service.mark_paid(order_id=order.pk)
         self.assertIn("[ชำระแล้ว]", notify.call_args.args[0])

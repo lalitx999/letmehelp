@@ -49,7 +49,7 @@ def submit_slip(*, order: Order, image) -> PaymentSlip:
 
 
 @transaction.atomic
-def mark_paid(*, order_id: int) -> Order:
+def mark_paid(*, order_id: int, notify_admins: bool = True) -> Order:
     """ยืนยันว่าชำระแล้ว + เปิดสิทธิ์เรียน — idempotent (เรียกซ้ำได้ไม่เปิดสิทธิ์ซ้ำ)"""
     order = Order.objects.select_for_update().select_related("user", "course").get(pk=order_id)
     if order.status == Order.Status.PAID:
@@ -59,12 +59,13 @@ def mark_paid(*, order_id: int) -> Order:
     order.save(update_fields=["status", "paid_at"])
     enrollment_service.grant_or_extend(user=order.user, course=order.course, days=order.duration_days or None)
 
-    from apps.notifications.tasks import notify_admins, send_payment_success_email
+    from apps.notifications import tasks as notify
 
-    transaction.on_commit(lambda: send_payment_success_email.delay(order.pk))
-    transaction.on_commit(
-        lambda: notify_admins.delay(f"✅ [ชำระแล้ว] ออเดอร์ #{order.pk}: {order.user.full_name} ซื้อ {order.course.title} ({order.amount:,.0f} บาท) — เปิดสิทธิ์เรียนแล้ว")
-    )
+    transaction.on_commit(lambda: notify.send_payment_success_email.delay(order.pk))
+    if notify_admins:
+        transaction.on_commit(
+            lambda: notify.notify_admins.delay(f"✅ [ชำระแล้ว] ออเดอร์ #{order.pk}: {order.user.full_name} ซื้อ {order.course.title} ({order.amount:,.0f} บาท) — เปิดสิทธิ์เรียนแล้ว")
+        )
     return order
 
 

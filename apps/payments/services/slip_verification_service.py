@@ -75,29 +75,10 @@ def _finish(slip_id, status, reason="", **fields):
 
 def _reject_order(order) -> None:
     Order.objects.filter(pk=order.pk).update(status=Order.Status.REJECTED)
-    reason = PaymentSlip.objects.filter(order=order).values_list("reason", flat=True).first() or ""
-    from apps.notifications.tasks import notify_admins
-
-    notify_admins.delay(f"❌ [สลิปไม่ผ่าน] ออเดอร์ #{order.pk} ({order.user.full_name}) — {reason}")
 
 
 def mark_manual_review(slip_id: int, reason: str) -> None:
     _finish(slip_id, PaymentSlip.Status.MANUAL_REVIEW, reason)
-    slip = PaymentSlip.objects.select_related("order__user").get(pk=slip_id)
-    from apps.notifications.tasks import notify_admins
-
-    notify_admins.delay(
-        f"⚠️ [สลิปรอตรวจ] ออเดอร์ #{slip.order_id} ({slip.order.user.full_name}) {slip.order.amount:,.0f} บาท — {reason}\n🔗 {settings.SITE_URL}/dashboard/slips/"
-    )
-
-
-def _notify_review(slip_id: int, reason: str) -> None:
-    slip = PaymentSlip.objects.select_related("order__user").get(pk=slip_id)
-    from apps.notifications.tasks import notify_admins
-
-    notify_admins.delay(
-        f"⚠️ [สลิปรอตรวจ] ออเดอร์ #{slip.order_id} ({slip.order.user.full_name}) {slip.order.amount:,.0f} บาท — {reason}\n🔗 {settings.SITE_URL}/dashboard/slips/"
-    )
 
 
 def verify_slip(slip_id: int) -> str:
@@ -125,7 +106,6 @@ def verify_slip(slip_id: int) -> str:
     # สลิปที่ไม่มีเลขอ้างอิง ใช้กันสลิปซ้ำไม่ได้ → ให้แอดมินตรวจ
     if not data.trans_ref:
         _finish(slip_id, PaymentSlip.Status.MANUAL_REVIEW, "สลิปไม่มีเลขอ้างอิงธุรกรรม", **raw)
-        _notify_review(slip_id, "สลิปไม่มีเลขอ้างอิง")
         return PaymentSlip.Status.MANUAL_REVIEW
 
     receiver = _receiver_ok(data)
@@ -147,7 +127,6 @@ def verify_slip(slip_id: int) -> str:
             _finish(slip_id, PaymentSlip.Status.REJECTED, "สลิปนี้ถูกใช้งานแล้ว", **raw)
             _reject_order(order)
             return PaymentSlip.Status.REJECTED
-        _notify_review(slip_id, reason)
         return PaymentSlip.Status.MANUAL_REVIEW
 
     # ยอดตรง + เลขอ้างอิงไม่ซ้ำ (+ผู้รับตรงถ้าตั้งค่าบัญชีร้านไว้) → อนุมัติและเปิดสิทธิ์ทันที เหมือน ryu_new
@@ -159,7 +138,7 @@ def verify_slip(slip_id: int) -> str:
         _reject_order(order)
         return PaymentSlip.Status.REJECTED
 
-    order_service.mark_paid(order_id=order.pk)
+    order_service.mark_paid(order_id=order.pk, notify_admins=False)  # แจ้งรวมในข้อความรูปสลิปแล้ว
     from apps.core.services import audit_service
 
     audit_service.log(

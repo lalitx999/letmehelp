@@ -64,6 +64,8 @@ def player(request, slug, lesson_id=None):
 
     if lesson_id is None:
         lesson_id = sel.first_unfinished_lesson_id(course, progress)
+        if lesson_id is None:  # คอร์สยังไม่มีบทเรียน (เช่น เพิ่งสร้าง/ยังไม่อัปโหลด) → แจ้งแทน 404
+            return render(request, "learning/empty.html", {"course": course, "enrollment": enrollment})
     lesson = next(
         (l for s in course.sections.all() for l in s.lessons.all() if l.pk == lesson_id), None
     )

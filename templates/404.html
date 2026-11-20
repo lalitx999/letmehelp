@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}ไม่พบหน้านี้ — Let Me Help{% endblock %}
+{% block content %}
+<div class="container-xl py-5">
+  <div class="surface p-4 p-lg-5 mx-auto text-center" style="max-width: 560px;">
+    <span class="icon-chip is-blue mb-3">{% icon "info-circle" %}</span>
+    <h1 class="h3">ไม่พบหน้าที่คุณต้องการ</h1>
+    <p class="text-secondary">ลิงก์อาจไม่ถูกต้อง หรือหน้านี้ถูกย้าย/ลบไปแล้ว</p>
+    <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+      <a href="/" class="btn btn-dark">กลับหน้าแรก</a>
+      {% if user.is_authenticated %}<a href="{% url 'learning:my_courses' %}" class="btn btn-outline-dark">ไปแดชบอร์ด</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

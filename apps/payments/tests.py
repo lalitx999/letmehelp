@@ -121,6 +121,11 @@ class SlipFlowV2Tests(BaseCase):
         self.assertEqual(photo, PNG)
         for part in (f"#{order.pk}", self.user.email, self.user.phone, self.course.title, "https://letmehelp.example/dashboard/slips/"):
             self.assertIn(part, caption)
+        self.assertIn("กำลังตรวจ", caption)  # ยังไม่ตรวจ
+        PaymentSlip.objects.filter(pk=slip.pk).update(status=PaymentSlip.Status.MANUAL_REVIEW, reason="ยอดไม่ตรง")
+        with mock.patch.object(notify_tasks.telegram_service, "send_photo", return_value=True) as send_photo:
+            notify_tasks.notify_slip_submitted(slip.pk)
+        self.assertIn("⚠️ รอแอดมินตรวจ — ยอดไม่ตรง", send_photo.call_args.args[2])
 
     @override_settings(TELEGRAM_BOT_TOKEN="t", TELEGRAM_CHAT_IDS=["-100"])
     def test_falls_back_to_text_when_photo_fails(self):
@@ -165,3 +170,23 @@ class PromptPayAndImageTests(SimpleTestCase):
         self.assertLessEqual(len(out), easyslip_client.MAX_IMAGE_BYTES)
         small = b"x" * 100
         self.assertEqual(easyslip_client._fit_image(io.BytesIO(small)), small)
+
+
+class EmptyCourseTests(BaseCase):
+    def test_paid_student_sees_empty_course_page_not_404(self):
+        from django.urls import reverse
+
+        from apps.courses.models import Section
+        from apps.enrollments.services import enrollment_service
+
+        Section.objects.filter(course=self.course).delete()  # คอร์สยังไม่มีบทเรียน
+        enrollment_service.grant_or_extend(user=self.user, course=self.course, days=365)
+        self.client.force_login(self.user)
+        resp = self.client.get(reverse("learning:player", kwargs={"slug": self.course.slug}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "กำลังอัปโหลดบทเรียน")
+
+    def test_unknown_course_uses_custom_404(self):
+        resp = self.client.get("/learn/no-such-course/")
+        self.assertEqual(resp.status_code, 404)
+        self.assertContains(resp, "ไม่พบหน้าที่คุณต้องการ", status_code=404)
