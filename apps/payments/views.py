@@ -26,7 +26,10 @@ def checkout(request, slug):
     package = pick_package(course, request.GET.get("days"))
     order = order_service.get_or_create_pending_order(user=request.user, course=course, package=package)
     pp_id = settings_service.get("PROMPTPAY_ID")
-    qr = promptpay.qr_svg(pp_id, order.amount) if pp_id else ""
+    try:
+        qr = promptpay.qr_svg(pp_id, order.amount) if pp_id else ""
+    except ValueError:  # ตั้งเลขพร้อมเพย์ผิดรูปแบบในหลังบ้าน → แสดง "ยังไม่ได้ตั้งค่าบัญชี" แทน 500
+        qr = ""
     return render(
         request,
         "payments/checkout.html",

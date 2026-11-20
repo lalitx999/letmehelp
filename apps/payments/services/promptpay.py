@@ -20,11 +20,21 @@ def _crc16(data: str) -> str:
 
 
 def build_payload(promptpay_id: str, amount: Decimal | None = None) -> str:
+    """QR แบบล็อกยอด (Point of Initiation = 12 + tag 54) ลูกค้าสแกนแล้วแอปธนาคารใส่ยอดให้เอง แก้ยอดไม่ได้
+    ถ้าไม่ส่ง amount จะได้ QR แบบผู้จ่ายกรอกยอดเอง (11) เหมือน QR ที่ธนาคารออกให้"""
     target = "".join(ch for ch in promptpay_id if ch.isdigit())
-    if len(target) >= 13:  # เลขบัตรประชาชน / Tax ID
+    if len(target) == 15:  # e-Wallet ID (เช่น "เลขที่อ้างอิง" ใต้ QR รับเงินของ K PLUS)
+        proxy = _tlv("03", target)
+    elif len(target) == 13:  # เลขบัตรประชาชน / Tax ID
         proxy = _tlv("02", target)
-    else:  # เบอร์โทร → 0066XXXXXXXXX
-        proxy = _tlv("01", "0066" + target.lstrip("0"))
+    elif len(target) == 10 and target.startswith("0"):  # เบอร์มือถือ → 0066XXXXXXXXX
+        proxy = _tlv("01", "0066" + target[1:])
+    else:
+        raise ValueError("PromptPay ต้องเป็นเบอร์มือถือ 10 หลัก เลขบัตร 13 หลัก หรือ e-Wallet ID 15 หลัก")
+    if amount is not None:
+        amount = Decimal(str(amount)).quantize(Decimal("0.01"))
+        if amount <= 0:
+            raise ValueError("ยอดชำระต้องมากกว่า 0")
     merchant = _tlv("29", _tlv("00", "A000000677010111") + proxy)
     parts = [
         _tlv("00", "01"),

@@ -102,7 +102,10 @@ EMAIL_HOST = env("EMAIL_HOST", default="localhost")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+# Hostinger: smtp.hostinger.com พอร์ต 465 + EMAIL_USE_SSL=True (หรือ 587 + EMAIL_USE_TLS=True) — เปิดได้อย่างใดอย่างหนึ่ง
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=not EMAIL_USE_SSL)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=20)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Let Me Help <no-reply@letmehelp.local>")
 
 # --- Celery ---------------------------------------------------------------
@@ -123,9 +126,10 @@ CELERY_BEAT_SCHEDULE = {
 # บัญชีรับเงิน (PromptPay) — ใช้สร้าง QR และตรวจชื่อ/เลขผู้รับในสลิป
 PROMPTPAY_ID = env("PROMPTPAY_ID", default="")  # เบอร์โทร 0XXXXXXXXX หรือเลขบัตรประชาชน 13 หลัก
 PROMPTPAY_ACCOUNT_NAME = env("PROMPTPAY_ACCOUNT_NAME", default="")
+PROMPTPAY_BANK_ACCOUNT = env("PROMPTPAY_BANK_ACCOUNT", default="")  # เลขบัญชีที่ผูกพร้อมเพย์ ใช้เทียบผู้รับในสลิป
 # EasySlip — ถ้าไม่ตั้ง key ระบบจะส่งสลิปเข้าคิว "ตรวจด้วยมือ" แทน
 EASYSLIP_API_KEY = env("EASYSLIP_API_KEY", default="")
-EASYSLIP_API_URL = env("EASYSLIP_API_URL", default="https://developer.easyslip.com/api/v1/verify")
+EASYSLIP_API_URL = env("EASYSLIP_API_URL", default="https://api.easyslip.com/v2/verify/bank")
 # Telegram Bot — แจ้งเตือนแอดมิน (สมัครใหม่ / ส่งสลิป / ชำระแล้ว) ฟรีไม่จำกัดข้อความ
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_CHAT_IDS = env.list("TELEGRAM_CHAT_IDS", default=[])

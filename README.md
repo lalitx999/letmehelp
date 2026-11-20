@@ -60,7 +60,11 @@ celery -A config beat -l info      # ตัวตั้งเวลาแจ้�
 
 ## ค่าที่ต้องรอจากลูกค้า (.env)
 
-`PROMPTPAY_ID`, `PROMPTPAY_ACCOUNT_NAME`, `EASYSLIP_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS`, `LINE_CONTACT_URL`, SMTP (`EMAIL_*`)
+- บัญชีรับเงิน: SCB 419-008459-4 · พร้อมเพย์ 0939546499 · ศิตา วาริชวิวัฒน์ (`PROMPTPAY_ID`, `PROMPTPAY_ACCOUNT_NAME`, `PROMPTPAY_BANK_ACCOUNT` — ใช้เทียบผู้รับในสลิป แก้ได้ที่ ตั้งค่าเว็บ)
+- `EASYSLIP_API_KEY` — EasySlip **V2** (`POST https://api.easyslip.com/v2/verify/bank` ส่ง `checkDuplicate`, `matchAmount`, `remark`)
+- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` — หา chat id: เพิ่มบอทเข้ากลุ่ม พิมพ์ `/start@ชื่อบอท` ในกลุ่ม แล้วรัน `python manage.py telegram --find` · ทดสอบส่ง: `python manage.py telegram --test` · ส่งสลิปใหม่จะได้รูปสลิป + รายละเอียดออเดอร์ + ลิงก์หน้าตรวจสลิป
+- อีเมล Hostinger: `EMAIL_HOST=smtp.hostinger.com`, `EMAIL_PORT=465`, `EMAIL_USE_SSL=True`, `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` = กล่องเมลที่สร้างใน hPanel, `DEFAULT_FROM_EMAIL` ต้องเป็นอีเมลเดียวกัน
+- `LINE_CONTACT_URL`
 
 กติกาตรวจสลิป (`slip_verification_service`):
 

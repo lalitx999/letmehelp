@@ -17,6 +17,41 @@ def notify_admins(text: str):
     return telegram_service.push_to_admins(text)
 
 
+@shared_task(autoretry_for=(telegram_service.TelegramError,), retry_backoff=True, max_retries=3)
+def notify_slip_submitted(slip_id: int):
+    """แจ้งแอดมินว่ามีสลิปใหม่: ส่งรูปสลิป + รายละเอียดออเดอร์ + ลิงก์ไปหน้าตรวจสลิป"""
+    if not telegram_service.enabled():
+        return 0
+    import os
+
+    from django.conf import settings
+    from django.urls import reverse
+
+    from apps.payments.models import PaymentSlip
+
+    slip = PaymentSlip.objects.select_related("order__user", "order__course").get(pk=slip_id)
+    order, user = slip.order, slip.order.user
+    package = order.package_label or (f"{order.duration_days} วัน" if order.duration_days else "")
+    lines = [
+        f"🧾 สลิปใหม่ · ออเดอร์ #{order.pk}" + (" (ต่ออายุ)" if order.is_renewal else ""),
+        f"👤 {user.full_name}",
+        f"📧 {user.email}",
+        f"📞 {user.phone}",
+        f"📚 {order.course.title}" + (f" · {package}" if package else ""),
+        f"💰 ยอดที่ต้องชำระ: ฿{order.amount:,.2f}",
+        f"⏰ {timezone.localtime(slip.created_at):%d/%m/%Y %H:%M}",
+        "",
+        "ระบบกำลังตรวจสลิปอัตโนมัติ จะแจ้งผลอีกครั้ง",
+        f"🔗 ตรวจสลิปในหลังบ้าน: {settings.SITE_URL}{reverse('dashboard:slip_list')}",
+    ]
+    try:
+        with slip.image.open("rb") as fh:
+            photo = fh.read()
+    except OSError:
+        photo = b""
+    return telegram_service.push_photo_to_admins(photo, "\n".join(lines), os.path.basename(slip.image.name) or "slip.jpg")
+
+
 @shared_task(autoretry_for=(OSError,), retry_backoff=True, max_retries=3)
 def send_payment_success_email(order_id: int):
     from apps.enrollments.models import Enrollment

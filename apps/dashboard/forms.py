@@ -30,6 +30,7 @@ class ReportForm(forms.ModelForm):
 class SiteSettingsForm(forms.Form):
     PROMPTPAY_ID = forms.CharField(label="PromptPay (เบอร์โทร 10 หลัก หรือเลขบัตร 13 หลัก)", required=False, max_length=20)
     PROMPTPAY_ACCOUNT_NAME = forms.CharField(label="ชื่อบัญชีรับเงิน (ใช้เทียบกับสลิป)", required=False, max_length=120)
+    PROMPTPAY_BANK_ACCOUNT = forms.CharField(label="เลขบัญชีธนาคารที่ผูกพร้อมเพย์ (ใช้เทียบกับสลิป)", required=False, max_length=20, help_text="เช่น 419-008459-4 — สลิปบางธนาคารแสดงเลขบัญชีแทนเบอร์พร้อมเพย์")
     LINE_CONTACT_URL = forms.URLField(label="ลิงก์ LINE ติดต่อเจ้าของ", required=False, help_text="เช่น https://lin.ee/xxxx — แสดงปุ่มคุยกับแอดมินในเว็บ")
     OWNER_NAME = forms.CharField(label="ชื่อผู้ให้บริการ (แสดงในนโยบายและข้อกำหนด)", required=False, max_length=120, help_text="ชื่อ-นามสกุลเจ้าของ หรือชื่อธุรกิจ เว้นว่างจะใช้ชื่อเว็บ")
     CONTACT_EMAIL = forms.EmailField(label="อีเมลติดต่อ (แสดงในนโยบายและ Footer)", required=False)

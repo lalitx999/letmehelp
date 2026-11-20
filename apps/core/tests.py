@@ -77,7 +77,7 @@ class PaymentFlowTests(BaseCase):
     def _slip(self, order):
         return PaymentSlip.objects.create(order=order, image=SimpleUploadedFile("s.png", PNG, "image/png"))
 
-    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_ID="0812345678", PROMPTPAY_ACCOUNT_NAME="")
+    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_BANK_ACCOUNT="", PROMPTPAY_ID="0812345678", PROMPTPAY_ACCOUNT_NAME="")
     def test_auto_verify_success_and_duplicate(self):
         order = order_service.get_or_create_pending_order(user=self.user, course=self.course, package=pick_package(self.course, None))
         data = SlipData("REF1", Decimal("500"), [], ["xxx-xxx-5678"], {"ok": 1})
@@ -94,7 +94,7 @@ class PaymentFlowTests(BaseCase):
             s2.refresh_from_db()
             self.assertIn("ใช้งานแล้ว", s2.reason)
 
-    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_ID="0812345678")
+    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_BANK_ACCOUNT="", PROMPTPAY_ID="0812345678")
     def test_wrong_amount_and_wrong_receiver_go_to_manual_review(self):
         order = order_service.get_or_create_pending_order(user=self.user, course=self.course, package=pick_package(self.course, None))
         with mock.patch.object(slip_verification_service, "verify_slip_image",

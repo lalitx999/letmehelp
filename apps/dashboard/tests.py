@@ -234,7 +234,7 @@ class SlipAutoApprovalTests(DashCase):
     def _slip(self, order):
         return PaymentSlip.objects.create(order=order, image=SimpleUploadedFile("s.png", PNG, "image/png"))
 
-    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_ID="", PROMPTPAY_ACCOUNT_NAME="")
+    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_BANK_ACCOUNT="", PROMPTPAY_ID="", PROMPTPAY_ACCOUNT_NAME="")
     def test_amount_matches_without_shop_account_is_auto_approved(self):
         order = order_service.get_or_create_pending_order(user=self.student, course=self.course, package=pick_package(self.course, None))
         with mock.patch.object(slip_verification_service, "verify_slip_image", return_value=SlipData("AUTO1", Decimal("500"), [], ["xxx-1234"], {})):
@@ -245,7 +245,7 @@ class SlipAutoApprovalTests(DashCase):
         log = AuditLog.objects.get(action="approve")
         self.assertIn("EasySlip", log.actor_label)
 
-    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_ID="", PROMPTPAY_ACCOUNT_NAME="")
+    @override_settings(EASYSLIP_API_KEY="k", PROMPTPAY_BANK_ACCOUNT="", PROMPTPAY_ID="", PROMPTPAY_ACCOUNT_NAME="")
     def test_wrong_amount_goes_to_review_and_admin_can_approve_and_reject(self):
         order = order_service.get_or_create_pending_order(user=self.student, course=self.course, package=pick_package(self.course, None))
         with mock.patch.object(slip_verification_service, "verify_slip_image", return_value=SlipData("AUTO2", Decimal("499"), [], [], {})):
@@ -447,10 +447,11 @@ class TelegramNotifyTests(DashCase):
             account_service.register_student(full_name="ใหม่", phone="0855555555", email="new@x.com", password="pw-12345678")
         self.assertIn("[สมัครใหม่]", notify.call_args.args[0])
         order = Order.objects.create(user=self.student, course=self.course, amount=500)
-        with mock.patch("apps.notifications.tasks.notify_admins.delay") as notify, \
-                mock.patch("apps.payments.tasks.verify_slip_task.delay"), self.captureOnCommitCallbacks(execute=True):
-            order_service.submit_slip(order=order, image=SimpleUploadedFile("s.png", PNG, "image/png"))
-        self.assertIn("[ส่งสลิป]", notify.call_args.args[0])
+        with mock.patch("apps.notifications.tasks.notify_slip_submitted") as notify, \
+                mock.patch("apps.payments.services.slip_verification_service.verify_slip", return_value="manual_review"), \
+                self.captureOnCommitCallbacks(execute=True):
+            slip = order_service.submit_slip(order=order, image=SimpleUploadedFile("s.png", PNG, "image/png"))
+        notify.assert_called_once_with(slip.pk)  # รูปสลิปส่งก่อนเริ่มตรวจ (ดู apps/payments/tests.py)
         with mock.patch("apps.notifications.tasks.notify_admins.delay") as notify, self.captureOnCommitCallbacks(execute=True):
             order_service.mark_paid(order_id=order.pk)
         self.assertIn("[ชำระแล้ว]", notify.call_args.args[0])

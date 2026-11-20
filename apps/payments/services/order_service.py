@@ -44,11 +44,7 @@ def submit_slip(*, order: Order, image) -> PaymentSlip:
     slip = PaymentSlip.objects.create(order=order, image=image)
     Order.objects.filter(pk=order.pk).update(status=Order.Status.REVIEWING)
     transaction.on_commit(lambda: verify_slip_task.delay(slip.pk))
-    from apps.notifications.tasks import notify_admins
-
-    transaction.on_commit(
-        lambda: notify_admins.delay(f"[ส่งสลิป] ออเดอร์ #{order.pk}: {order.user.full_name} · {order.course.title} · {order.amount:,.0f} บาท (กำลังตรวจอัตโนมัติ)")
-    )
+    # แจ้ง Telegram (รูปสลิป) ทำใน verify_slip_task ก่อนเริ่มตรวจ เพื่อให้ลำดับข้อความถูกต้อง
     return slip
 
 
@@ -67,7 +63,7 @@ def mark_paid(*, order_id: int) -> Order:
 
     transaction.on_commit(lambda: send_payment_success_email.delay(order.pk))
     transaction.on_commit(
-        lambda: notify_admins.delay(f"[ชำระแล้ว] ออเดอร์ #{order.pk}: {order.user.full_name} ซื้อ {order.course.title} ({order.amount:,.0f} บาท)")
+        lambda: notify_admins.delay(f"✅ [ชำระแล้ว] ออเดอร์ #{order.pk}: {order.user.full_name} ซื้อ {order.course.title} ({order.amount:,.0f} บาท) — เปิดสิทธิ์เรียนแล้ว")
     )
     return order
 
