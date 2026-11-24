@@ -1,6 +1,6 @@
 {% load static %}
 // Service worker แบบเบา: cache ไฟล์ static + หน้า offline เท่านั้น (ไม่ cache หน้าที่มีข้อมูลผู้ใช้/วิดีโอ)
-const CACHE = "lmh-static-v4";
+const CACHE = "lmh-static-v5";
 const PRECACHE = ["{% url 'core:offline' %}", "{% static 'css/site.css' %}", "{% static 'vendor/bootstrap/css/bootstrap.min.css' %}", "{% static 'img/logo.png' %}", "{% static 'vendor/bootstrap-icons/icons.svg' %}", "{% static 'js/site.js' %}"];
 
 self.addEventListener("install", (e) => {

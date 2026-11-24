@@ -60,3 +60,37 @@ class SiteSettingsForm(forms.Form):
         if raw and not all(x.isdigit() and 0 < int(x) <= 365 for x in raw.split(",")):
             raise forms.ValidationError("ใส่ตัวเลขวัน 1–365 คั่นด้วยจุลภาค เช่น 7,3,1")
         return raw
+
+
+class BroadcastForm(forms.Form):
+    target = forms.ChoiceField(label="ส่งถึง")
+    subject = forms.CharField(label="หัวข้ออีเมล", max_length=150)
+    message = forms.CharField(label="ข้อความ", max_length=5000, widget=forms.Textarea(attrs={"rows": 9}),
+                              help_text="ระบบใส่ \"สวัสดีค่ะ คุณ(ชื่อนักเรียน)\" ด้านบน และชื่อเว็บไว้ท้ายให้อัตโนมัติ")
+
+    def __init__(self, *args, targets=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["target"].choices = [(v, f"{label} — {n:,} คน") for v, label, n in targets]
+        for f in self.fields.values():
+            f.widget.attrs["class"] = "form-select" if isinstance(f.widget, forms.Select) else "form-control"
+
+
+class StudentImportForm(forms.Form):
+    file = forms.FileField(label="ไฟล์ CSV", help_text="แถวแรกเป็นหัวคอลัมน์: ชื่อ-นามสกุล, อีเมล, เบอร์โทร, วันหมดอายุ (ไม่บังคับ) · ไม่เกิน 2,000 คน")
+    course = forms.ModelChoiceField(label="มอบสิทธิ์คอร์ส (ไม่บังคับ)", queryset=None, required=False, empty_label="— ไม่มอบสิทธิ์ สร้างบัญชีอย่างเดียว —")
+    days = forms.IntegerField(label="อายุสิทธิ์ (วัน)", required=False, min_value=1, max_value=36500,
+                              help_text="ใช้กับแถวที่ไม่มีวันหมดอายุ · เว้นว่าง = ตามอายุคอร์ส · ตลอดชีพ = 36500")
+    send_email = forms.BooleanField(label="ส่งอีเมลให้นักเรียนใหม่ตั้งรหัสผ่าน", required=False, initial=True,
+                                    help_text="ต้องตั้งค่าอีเมลของเว็บก่อน ถ้ายังไม่ได้ตั้ง ให้นักเรียนกด \"ลืมรหัสผ่าน\" ที่หน้าเข้าสู่ระบบเอง")
+
+    def __init__(self, *args, **kwargs):
+        from apps.courses.models import Course
+
+        super().__init__(*args, **kwargs)
+        self.fields["course"].queryset = Course.objects.order_by("title")
+        for name, f in self.fields.items():
+            if name == "send_email":
+                f.widget.attrs["class"] = "form-check-input"
+            else:
+                f.widget.attrs["class"] = "form-select" if isinstance(f.widget, forms.Select) else "form-control"
+        self.fields["file"].widget.attrs["accept"] = ".csv,text/csv"

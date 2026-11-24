@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import catalog, money, people, system
+from .views import catalog, money, people, system, tools
 
 app_name = "dashboard"
 
@@ -46,6 +46,9 @@ urlpatterns = [
     # ผู้ใช้: นักเรียน
     path("students/", people.student_list, name="student_list"),
     path("students/new/", people.student_form, name="student_add"),
+    path("students/import/", tools.student_import, name="student_import"),
+    path("students/import/template.csv", tools.student_import_template, name="student_import_template"),
+    path("broadcast/", tools.broadcast, name="broadcast"),
     path("students/<int:user_id>/", people.student_detail, name="student_detail"),
     path("students/<int:user_id>/edit/", people.student_form, name="student_edit"),
     path("students/<int:user_id>/manage/", people.student_manage, name="student_manage"),

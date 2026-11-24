@@ -4,10 +4,10 @@
    กระจกเบลอ + แสงฟุ้งสีโลโก้ หัวข้อสองโทน ปุ่มเม็ดยา — ไม่มีอิโมจิ ไอคอนล้วน
    ========================================================================== */
 
-@font-face { font-family: "Sarabun"; font-weight: 400; font-display: swap; src: url("../fonts/Sarabun-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Sarabun"; font-weight: 500; font-display: swap; src: url("../fonts/Sarabun-Medium.ttf") format("truetype"); }
-@font-face { font-family: "Sarabun"; font-weight: 600; font-display: swap; src: url("../fonts/Sarabun-SemiBold.ttf") format("truetype"); }
-@font-face { font-family: "Sarabun"; font-weight: 700; font-display: swap; src: url("../fonts/Sarabun-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Sarabun"; font-weight: 400; font-display: swap; src: url("../fonts/Sarabun-Regular.woff2") format("woff2"), url("../fonts/Sarabun-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Sarabun"; font-weight: 500; font-display: swap; src: url("../fonts/Sarabun-Medium.woff2") format("woff2"), url("../fonts/Sarabun-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Sarabun"; font-weight: 600; font-display: swap; src: url("../fonts/Sarabun-SemiBold.woff2") format("woff2"), url("../fonts/Sarabun-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Sarabun"; font-weight: 700; font-display: swap; src: url("../fonts/Sarabun-Bold.woff2") format("woff2"), url("../fonts/Sarabun-Bold.ttf") format("truetype"); }
 
 :root {
   --lmh-red: #d02023;
@@ -931,3 +931,13 @@ button.slip-thumb:hover { transform: scale(1.06); box-shadow: var(--shadow-sm); 
 body.is-sorting, body.is-sorting * { cursor: grabbing !important; user-select: none; }
 [data-sort-item].is-dragging { position: relative; z-index: 2; background: var(--paper); box-shadow: var(--shadow-md); outline: 2px solid var(--lmh-blue); outline-offset: -2px; border-radius: 14px; }
 .pay-table .chip { white-space: nowrap; }
+
+/* หน้าเกี่ยวกับเรา (เขียนให้คนและ AI อ้างอิง) */
+.fact-list { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: .55rem 1.25rem; margin: 0; padding: 1.25rem 1.4rem; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--canvas); }
+.fact-list dt { font-weight: 600; color: var(--lmh-blue); }
+.fact-list dd { margin: 0; }
+@media (max-width: 575.98px) { .fact-list { grid-template-columns: 1fr; } .fact-list dd { margin-bottom: .4rem; } }
+.about h2 { margin: 0 0 .8rem; }
+.about-table th { font-size: .85rem; color: var(--muted); font-weight: 500; }
+.follow-plain { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+.follow-plain a { display: inline-flex; align-items: center; gap: .4rem; }

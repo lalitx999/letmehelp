@@ -116,3 +116,35 @@ def send_expiry_email(enrollment_id: int, days_left: int):
         expires_at=timezone.localtime(enr.expires_at),
         days_left=days_left,
     )
+
+
+@shared_task(autoretry_for=(OSError,), retry_backoff=True, max_retries=3)
+def send_broadcast_batch(user_ids, subject: str, message: str, include_staff: bool = False):
+    """อีเมลประกาศ 1 ชุด: เปิดการเชื่อมต่อ SMTP ครั้งเดียวแล้วส่งทั้งชุด (ทักชื่อผู้รับรายคน)"""
+    from django.conf import settings
+    from django.core.mail import EmailMessage, get_connection
+
+    from apps.accounts.models import User
+
+    from .services.broadcast_service import render_body
+
+    users = User.objects.filter(pk__in=user_ids, is_active=True).only("email", "full_name")
+    if not include_staff:
+        users = users.filter(is_staff=False)
+    msgs = [EmailMessage(subject, render_body(u.full_name, message), settings.DEFAULT_FROM_EMAIL, [u.email]) for u in users]
+    if msgs:
+        with get_connection() as conn:
+            conn.send_messages(msgs)
+    return len(msgs)
+
+
+@shared_task(autoretry_for=(OSError,), retry_backoff=True, max_retries=3)
+def send_set_password_email(user_id: int):
+    """นักเรียนที่แอดมินนำเข้า: ส่งลิงก์ตั้งรหัสผ่านครั้งแรก (ใช้กลไกลืมรหัสผ่านของ Django)"""
+    from apps.accounts.models import User
+
+    from .services.email_service import send_set_password
+
+    user = User.objects.filter(pk=user_id, is_active=True).first()
+    if user:
+        send_set_password(user)

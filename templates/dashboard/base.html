@@ -9,7 +9,7 @@
 <!-- ลิ้นชักเมนูบนมือถือ -->
 <div class="offcanvas offcanvas-start adm-drawer" tabindex="-1" id="dashDrawer" aria-label="เมนูแอดมิน">
   <div class="offcanvas-header">
-    <a href="{% url 'dashboard:overview' %}" class="adm-brand"><img src="{% static 'img/logo.png' %}" alt="Let Me Help"></a>
+    <a href="{% url 'dashboard:overview' %}" class="adm-brand"><img src="{% static 'img/logo.png' %}" alt="Let Me Help" width="69" height="30"></a>
     <button class="adm-icon-btn" data-bs-dismiss="offcanvas" aria-label="ปิด">{% icon "x-lg" %}</button>
   </div>
   <div class="offcanvas-body">{% include "dashboard/_nav.html" %}</div>
@@ -17,7 +17,7 @@
 
 <div class="adm">
   <aside class="adm-side" aria-label="เมนูแอดมิน">
-    <a href="{% url 'dashboard:overview' %}" class="adm-brand"><img src="{% static 'img/logo.png' %}" alt="Let Me Help"></a>
+    <a href="{% url 'dashboard:overview' %}" class="adm-brand"><img src="{% static 'img/logo.png' %}" alt="Let Me Help" width="69" height="30"></a>
     {% include "dashboard/_nav.html" %}
   </aside>
 

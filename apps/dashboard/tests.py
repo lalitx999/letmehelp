@@ -663,3 +663,91 @@ class CourseContentDragTests(DashCase):
         }, HTTP_X_REQUESTED_WITH="fetch")
         self.assertEqual(r.json()["ok"], True, r.content[:300])
         self.assertEqual(list(self.l2.attachments.values_list("title", flat=True)), ["แบบฝึกหัด"])
+
+
+class BroadcastTests(DashCase):
+    def test_targets_and_send_personalised_emails(self):
+        from django.core import mail
+
+        enrollment_service.grant_or_extend(user=self.student, course=self.course)
+        User.objects.create_user("idle@x.com", "pw-12345678", full_name="Idle", phone="0833333333")
+        self.client.force_login(self.admin)
+        r = self.client.get(reverse("dashboard:broadcast"))
+        self.assertContains(r, "กำลังเรียนอยู่ (ทุกคอร์ส) — 1 คน")
+        self.assertContains(r, "บัญชีนักเรียนทั้งหมด — 2 คน")
+        r = self.client.post(reverse("dashboard:broadcast"), {"target": "active", "subject": "คลิปใหม่", "message": "มีคลิปใหม่แล้ว", "do": "send"})
+        self.assertRedirects(r, reverse("dashboard:broadcast"))
+        self.assertEqual([m.to for m in mail.outbox], [["s@x.com"]])
+        self.assertIn("สวัสดีค่ะ คุณStu", mail.outbox[0].body)
+        self.assertEqual(AuditLog.objects.get(action="broadcast").changes["recipients"], 1)
+
+    def test_test_send_goes_only_to_admin(self):
+        from django.core import mail
+
+        self.client.force_login(self.admin)
+        self.client.post(reverse("dashboard:broadcast"), {"target": "all", "subject": "ลอง", "message": "x", "do": "test"})
+        self.assertEqual([m.to for m in mail.outbox], [["a@x.com"]])
+        self.assertTrue(mail.outbox[0].subject.startswith("[ทดสอบ]"))
+
+
+class StudentImportTests(DashCase):
+    def _upload(self, text, encoding="utf-8-sig", **extra):
+        f = SimpleUploadedFile("students.csv", text.encode(encoding), "text/csv")
+        self.client.force_login(self.admin)
+        data = {"file": f}
+        data.update(extra)
+        return self.client.post(reverse("dashboard:student_import"), data)
+
+    def test_import_creates_accounts_grants_course_and_reports_bad_rows(self):
+        from django.core import mail
+
+        csv_text = (
+            "ชื่อ-นามสกุล,อีเมล,เบอร์โทร,วันหมดอายุ\n"
+            "เด็กหนึ่ง,One@x.com,812345678,31/12/2570\n"      # เบอร์โดน Excel ตัด 0 + ปี พ.ศ.
+            "นักเรียนเดิม,s@x.com,0811111111,\n"               # มีบัญชีอยู่แล้ว
+            ",nobody@x.com,0811111112,\n"                       # ไม่มีชื่อ
+            "ซ้ำ,one@x.com,0811111113,\n"                       # อีเมลซ้ำในไฟล์
+            "เบอร์ผิด,bad@x.com,12,\n"
+        )
+        r = self._upload(csv_text, course=self.course.pk, send_email="on")
+        res = r.context["result"]
+        self.assertEqual((res["created"], res["existing"], res["granted"], len(res["errors"])), (1, 1, 2, 3))
+        u = User.objects.get(email="one@x.com")
+        self.assertEqual(u.phone, "0812345678")
+        self.assertFalse(u.has_usable_password())
+        e = Enrollment.objects.get(user=u)
+        self.assertEqual(timezone.localtime(e.expires_at).date().isoformat(), "2027-12-31")
+        self.assertTrue(Enrollment.objects.filter(user=self.student, course=self.course, status="active").exists())
+        self.assertEqual([m.to for m in mail.outbox], [["one@x.com"]])  # ส่งลิงก์เฉพาะบัญชีใหม่
+        self.assertIn("/accounts/password/reset/", mail.outbox[0].body)
+
+    def test_thai_excel_cp874_file_and_missing_columns(self):
+        r = self._upload("ชื่อ,อีเมล,เบอร์\nทดสอบ,cp@x.com,0899999999\n", encoding="cp874")
+        self.assertEqual(r.context["result"]["created"], 1)
+        r = self._upload("name,phone\nA,0811111111\n")
+        self.assertIn("ไม่พบคอลัมน์", str(r.context["form"].errors))
+
+    def test_template_download(self):
+        self.client.force_login(self.admin)
+        r = self.client.get(reverse("dashboard:student_import_template"))
+        self.assertIn("อีเมล", r.content.decode("utf-8-sig"))
+
+
+class PasswordResetTests(DashCase):
+    def test_imported_user_without_password_can_set_one(self):
+        from django.core import mail
+
+        u = User.objects.create_user("new@x.com", None, full_name="New", phone="0844444444")
+        self.client.post(reverse("accounts:password_reset"), {"email": "new@x.com"})
+        self.assertEqual(len(mail.outbox), 1)
+        link = next(line for line in mail.outbox[0].body.splitlines() if "/accounts/password/reset/" in line)
+        path = link[link.index("/accounts/"):]
+        r = self.client.get(path, follow=True)  # Django เปลี่ยนเป็น URL set-password ก่อน
+        r = self.client.post(r.redirect_chain[-1][0], {"new_password1": "Sup3r-secret-99", "new_password2": "Sup3r-secret-99"})
+        self.assertRedirects(r, reverse("accounts:password_reset_complete"))
+        u.refresh_from_db()
+        self.assertTrue(u.check_password("Sup3r-secret-99"))
+
+    def test_unknown_email_gives_same_page(self):
+        r = self.client.post(reverse("accounts:password_reset"), {"email": "nobody@x.com"})
+        self.assertRedirects(r, reverse("accounts:password_reset_done"))

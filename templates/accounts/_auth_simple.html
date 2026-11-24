@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<section class="page-hero is-center">
+  <div class="container" style="max-width: 560px;">
+    <nav class="crumbs"><a href="{% url 'accounts:login' %}">{% icon "arrow-left" %} เข้าสู่ระบบ</a></nav>
+    <h1>{% block heading %}{% endblock %}</h1>
+    <p class="lead-s">{% block lead %}{% endblock %}</p>
+  </div>
+</section>
+<div class="container section pt-2" style="max-width: 560px;">
+  <div class="auth-shell p-4 p-lg-5">{% block card %}{% endblock %}</div>
+</div>
+{% endblock %}

@@ -1,10 +1,7 @@
 {% extends "base.html" %}
 {% load static ui %}
 {% block body_class %}{{ block.super }} is-home{% endblock %}
-{% block extra_meta %}
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalOrganization","name":"Let Me Help","alternateName":"มานี่เดี๋ยวพี่สอน","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'img/icon-512.png' %}"}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{% for q, a in faqs %}{"@type":"Question","name":{{ q|json_str }},"acceptedAnswer":{"@type":"Answer","text":{{ a|json_str }}}}{% if not forloop.last %},{% endif %}{% endfor %}]}</script>
-{% endblock %}
+{% block extra_meta %}{% jsonld schema %}{% endblock %}
 {% block content %}
 
 <!-- Hero: โลโก้ + หัวข้อ + ผู้สอน + จุดเด่น 4 ข้อ + ภาพประกอบ -->
@@ -14,7 +11,7 @@
   <span class="glow orange" aria-hidden="true"></span>
 
   <div class="container hero-inner">
-    <img src="{% static 'img/logo.png' %}" alt="Let Me Help มานี่เดี๋ยวพี่สอน" class="hero-logo" width="727" height="316">
+    <img src="{% static 'img/logo.png' %}" alt="Let Me Help มานี่เดี๋ยวพี่สอน" class="hero-logo" width="727" height="316" fetchpriority="high">
     <h1 class="hero-title"><span class="soft d-block">อังกฤษสนุก เข้าใจง่าย</span>ประหยัดเวลา <span class="accent">คุ้มราคา</span></h1>
     <p class="hero-tag">โดย <strong>พี่ใยไหม</strong></p>
     <ul class="creds" aria-label="ประวัติผู้สอน">

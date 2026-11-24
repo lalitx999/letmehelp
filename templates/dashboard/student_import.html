@@ -1,0 +1,57 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}นำเข้านักเรียน{% endblock %}
+{% block dash_content %}
+<a href="{% url 'dashboard:student_list' %}" class="crumbs">{% icon "arrow-left" %} นักเรียนทั้งหมด</a>
+<div class="mt-1 mb-3"><h1 class="h3 mb-0">นำเข้านักเรียนจาก CSV</h1>
+  <div class="small text-secondary">ย้ายนักเรียนเก่าเข้าระบบทีเดียว — สร้างบัญชี มอบสิทธิ์คอร์ส และส่งลิงก์ให้ตั้งรหัสผ่านเอง</div></div>
+
+{% if result %}
+<div class="dash-card mb-3">
+  <h2 class="h6 mb-3">{% icon "check2-all" %} ผลการนำเข้า ({{ result.total }} แถว)</h2>
+  <div class="row g-2 mb-2">
+    <div class="col-6 col-md-3"><div class="stat dash-card"><div><div class="num">{{ result.created }}</div><div class="lbl-s">บัญชีใหม่</div></div></div></div>
+    <div class="col-6 col-md-3"><div class="stat dash-card"><div><div class="num">{{ result.existing }}</div><div class="lbl-s">มีบัญชีอยู่แล้ว</div></div></div></div>
+    <div class="col-6 col-md-3"><div class="stat dash-card"><div><div class="num">{{ result.granted }}</div><div class="lbl-s">มอบสิทธิ์คอร์ส</div></div></div></div>
+    <div class="col-6 col-md-3"><div class="stat dash-card"><div><div class="num {% if result.errors %}text-danger{% endif %}">{{ result.errors|length }}</div><div class="lbl-s">แถวที่ผิด</div></div></div></div>
+  </div>
+  {% if result.emailed %}<p class="small text-secondary mb-2">{% icon "envelope-check" %} ส่งลิงก์ตั้งรหัสผ่านให้นักเรียนใหม่ {{ result.emailed }} คน (ส่งในเบื้องหลัง)</p>{% endif %}
+  {% if result.errors %}
+  <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+    <thead><tr><th>แถว</th><th>อีเมล</th><th>ปัญหา</th></tr></thead>
+    <tbody>{% for line, email, msg in result.errors %}<tr><td>{{ line }}</td><td>{{ email }}</td><td class="text-danger">{{ msg }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <p class="small text-secondary mt-2 mb-0">แก้แถวที่ผิดในไฟล์แล้วนำเข้าใหม่ได้ — แถวที่นำเข้าแล้วจะนับเป็น "มีบัญชีอยู่แล้ว" ไม่สร้างซ้ำ</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <form method="post" enctype="multipart/form-data" class="dash-card">
+      {% csrf_token %}
+      {% for f in form %}
+      {% if f.name == "send_email" %}
+      <div class="form-check mb-3">{{ f }} <label class="form-check-label" for="{{ f.id_for_label }}">{{ f.label }}</label><div class="form-text">{{ f.help_text }}</div></div>
+      {% else %}
+      <div class="mb-3"><label class="form-label fw-medium" for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
+        {% if f.errors %}<div class="small text-danger mt-1">{{ f.errors|join:" " }}</div>{% elif f.help_text %}<div class="form-text">{{ f.help_text }}</div>{% endif %}</div>
+      {% endif %}
+      {% endfor %}
+      <button class="btn btn-dark">{% icon "upload" %} นำเข้า</button>
+    </form>
+  </div>
+  <div class="col-lg-5">
+    <div class="dash-card">
+      <h2 class="h6">{% icon "file-earmark-spreadsheet" %} รูปแบบไฟล์</h2>
+      <ol class="small ps-3 mb-3">
+        <li>ดาวน์โหลดไฟล์ตัวอย่าง แล้วเปิดด้วย Excel หรือ Google Sheets</li>
+        <li>ใส่ข้อมูลนักเรียน 1 คนต่อ 1 แถว (เบอร์โทรที่ Excel ตัดเลข 0 ข้างหน้า ระบบเติมให้)</li>
+        <li>วันหมดอายุใส่หรือไม่ก็ได้ เช่น 2027-12-31 หรือ 31/12/2570</li>
+        <li>บันทึกเป็น <b>CSV UTF-8</b> แล้วอัปโหลด</li>
+      </ol>
+      <a href="{% url 'dashboard:student_import_template' %}" class="btn btn-outline-dark btn-sm">{% icon "download" %} ไฟล์ตัวอย่าง .csv</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

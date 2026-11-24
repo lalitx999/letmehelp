@@ -1,0 +1,43 @@
+{% extends "dashboard/base.html" %}
+{% load ui %}
+{% block dash_title %}ส่งอีเมลประกาศ{% endblock %}
+{% block dash_content %}
+<div class="mb-3"><span class="lbl d-block mb-1">ผู้ใช้</span><h1 class="h3 mb-0">ส่งอีเมลประกาศ</h1>
+  <div class="small text-secondary">เขียนครั้งเดียว ส่งถึงนักเรียนทั้งกลุ่ม เช่น แจ้งคลิปใหม่ เปลี่ยนตารางสอน หรือโปรโมชัน — ระบบทักชื่อนักเรียนให้รายคน</div></div>
+<div class="row g-3">
+  <div class="col-lg-7">
+    <form method="post" class="dash-card" id="broadcast-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for f in form %}
+      <div class="mb-3">
+        <label class="form-label fw-medium" for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
+        {% if f.errors %}<div class="small text-danger mt-1">{{ f.errors|join:" " }}</div>{% elif f.help_text %}<div class="form-text">{{ f.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="d-flex flex-wrap gap-2 justify-content-end">
+        <button class="btn btn-outline-dark" name="do" value="test">{% icon "envelope" %} ส่งทดสอบถึงฉัน ({{ user.email }})</button>
+        <button class="btn btn-dark" name="do" value="send" data-confirm-send>{% icon "megaphone" %} ส่งอีเมล</button>
+      </div>
+    </form>
+  </div>
+  <div class="col-lg-5">
+    <div class="dash-card">
+      <h2 class="h6 mb-3">{% icon "clock-history" %} ประกาศที่ส่งล่าสุด</h2>
+      {% for h in history %}
+      <div class="py-2 {% if not forloop.last %}border-bottom{% endif %}"><div class="fw-medium">{{ h.object_repr }}</div>
+        <div class="small text-secondary">{{ h.created_at|date:"j M y H:i" }} · {{ h.changes.recipients }} คน · โดย {{ h.user.full_name|default:"-" }}</div></div>
+      {% empty %}<p class="small text-secondary mb-0">ยังไม่เคยส่ง</p>{% endfor %}
+    </div>
+    <div class="state info mt-3">{% icon "info-circle" %}<div class="small">อีเมลจะส่งได้เมื่อตั้งค่า SMTP ของเว็บแล้ว (Hostinger) · ผู้ให้บริการอีเมลมักจำกัดจำนวนต่อชั่วโมง ถ้านักเรียนเยอะ ระบบทยอยส่งเป็นชุดให้เอง</div></div>
+  </div>
+</div>
+<script>
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-confirm-send]");
+    if (!b) return;
+    const sel = document.getElementById("id_target");
+    if (!confirm("ส่งอีเมลถึง: " + sel.options[sel.selectedIndex].text + " ?\nส่งแล้วยกเลิกไม่ได้")) e.preventDefault();
+  });
+</script>
+{% endblock %}

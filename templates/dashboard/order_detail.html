@@ -6,4 +6,4 @@
 <h1 class="h3 mt-1 mb-3">ออเดอร์ #{{ o.pk }} {% include "dashboard/_order_status.html" with o=o %}</h1>
 <div class="dash-card" style="max-width: 720px">{% include "dashboard/_payment_body.html" %}</div>
 {% endblock %}
-{% block extra_js %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/dashboard.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}เกี่ยวกับ Let Me Help และพี่ใยไหม — คอร์สภาษาอังกฤษ TGAT / A-Level{% endblock %}
+{% block meta_description %}Let Me Help (มานี่เดี๋ยวพี่สอน) คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT และ A-Level สอนโดยพี่ใยไหม อักษร จุฬาฯ 82 เกียรตินิยมอันดับหนึ่ง เหรียญทอง ประสบการณ์ 10 ปี เรียนได้ 1 ปี มี PDF และหนังสือเล่ม{% endblock %}
+{% block og_title %}เกี่ยวกับ Let Me Help และพี่ใยไหม{% endblock %}
+{% block extra_meta %}{% jsonld schema %}{% endblock %}
+{% block content %}
+{# หน้านี้เขียนแบบ "ตอบก่อน อธิบายทีหลัง": หัวข้อเป็นคำถาม ย่อหน้าแรกของแต่ละหัวข้อตอบตรงๆ ในตัวเอง เพื่อให้คนและ AI ยกไปอ้างอิงได้ทันที #}
+<section class="page-hero is-center">
+  <div class="container" style="max-width: 820px;">
+    <nav class="crumbs" aria-label="breadcrumb"><a href="{% url 'core:home' %}">หน้าแรก</a> {% icon "chevron-right" %} เกี่ยวกับเรา</nav>
+    <h1><span class="soft">Let Me Help</span> คือใคร สอนอะไร</h1>
+    <p class="lead-s">{{ seo.SUMMARY }}</p>
+    <p class="small text-secondary mb-0">อัปเดตล่าสุด {{ updated }}</p>
+  </div>
+</section>
+
+<div class="container section pt-2 about" style="max-width: 820px;">
+
+  <section class="mb-5" aria-labelledby="facts">
+    <h2 id="facts" class="h4">สรุปข้อมูลสำคัญ</h2>
+    <dl class="fact-list">
+      {% for k, v in facts %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}
+    </dl>
+  </section>
+
+  <section class="mb-5" id="instructor" aria-labelledby="instructor-h">
+    <h2 id="instructor-h" class="h4">พี่ใยไหมคือใคร</h2>
+    <p><b>พี่ใยไหมคือผู้สอนและผู้ก่อตั้ง Let Me Help</b> จบจากคณะอักษรศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย (รุ่น 82) ด้วยเกียรตินิยมอันดับหนึ่ง เหรียญทอง และสอนภาษาอังกฤษมาแล้ว {{ seo.INSTRUCTOR.experience_years }} ปี</p>
+    <p>แนวการสอนเน้น <b>สอนละเอียด พร้อมเทคนิคทำข้อสอบ</b> อธิบายให้เข้าใจที่มาของคำตอบ ไม่ใช่แค่จำสูตร และ <b>ใส่ใจจนนักเรียนสอบผ่าน</b> — ชื่อแบรนด์ "มานี่เดี๋ยวพี่สอน" มาจากความตั้งใจนี้</p>
+  </section>
+
+  <section class="mb-5" aria-labelledby="courses-h">
+    <h2 id="courses-h" class="h4">มีคอร์สอะไรบ้าง ราคาเท่าไร</h2>
+    {% if courses %}
+    <p>ตอนนี้ Let Me Help เปิดสอน {{ courses|length }} คอร์ส จ่ายครั้งเดียว เรียนได้ตามอายุคอร์ส (ราคาด้านล่างเป็นราคาปัจจุบันจากระบบ)</p>
+    <div class="table-responsive"><table class="table align-middle about-table">
+      <thead><tr><th>คอร์ส</th><th class="text-end">ราคาตอนนี้</th><th>อายุคอร์ส</th><th class="text-end">จำนวนคลิป</th></tr></thead>
+      <tbody>
+      {% for x in courses %}{% with c=x.c %}
+        <tr>
+          <td><a href="{{ x.url }}" class="fw-medium">{{ c.title }}</a>{% if c.subtitle %}<div class="small text-secondary">{{ c.subtitle }}</div>{% endif %}</td>
+          <td class="text-end text-nowrap">฿{{ c.current_price|floatformat:"-2" }}{% if c.promo_active %}<div class="small text-secondary">ปกติ ฿{{ c.price|floatformat:"-2" }}{% if c.promo_ends_on %} · โปรถึง {{ c.promo_ends_on|date:"j M Y" }}{% endif %}</div>{% endif %}</td>
+          <td class="text-nowrap">{{ c.access_days|package_days }}</td>
+          <td class="text-end">{{ x.lessons }}</td>
+        </tr>
+      {% endwith %}{% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<p>กำลังเตรียมคอร์สแรก</p>{% endif %}
+  </section>
+
+  <section class="mb-5" aria-labelledby="features-h">
+    <h2 id="features-h" class="h4">เรียนออนไลน์กับ Let Me Help มีอะไรช่วยบ้าง</h2>
+    <p>นอกจากคลิปสอน ระบบเรียนช่วยให้เรียนต่อเนื่องและทบทวนง่าย:</p>
+    <ul>
+      <li><b>จำตำแหน่งที่ดูค้างไว้</b> ทุกคลิป กลับมาเรียนต่อได้ทันที และย้อนให้ 10 วินาทีเพื่อปะติดปะต่อเนื้อหา</li>
+      <li><b>สมุดโน้ตแทรกเวลาในวิดีโอ</b> กดเวลาที่จดไว้เพื่อข้ามไปจุดนั้น คัดลอกหรือดาวน์โหลดเก็บไว้ทบทวนก่อนสอบ</li>
+      <li><b>ปฏิทินและสถิติการเรียน</b> เห็นวันที่เรียน เวลาเรียนแต่ละเดือน และจำนวนวันต่อเนื่อง ช่วยวางแผนไม่ให้ไปอัดช่วงใกล้สอบ</li>
+      <li><b>เอกสาร PDF</b> ประกอบบทเรียน และ <b>หนังสือเล่มจริง</b> สั่งซื้อแยกได้</li>
+      <li><b>เรียนได้ทุกอุปกรณ์</b> คอมพิวเตอร์ แท็บเล็ต สมาร์ตโฟน และเพิ่มเป็นไอคอนบนหน้าจอมือถือได้</li>
+    </ul>
+  </section>
+
+  <section class="mb-5" aria-labelledby="howto-h">
+    <h2 id="howto-h" class="h4">สมัครเรียนอย่างไร</h2>
+    <ol>
+      {% for ic, cls, title, text in steps %}<li><b>{{ title|slice:"3:" }}</b> — {{ text }}</li>{% endfor %}
+    </ol>
+    <p class="mb-0">ดูคลิปตัวอย่างฟรีได้ก่อนตัดสินใจที่ <a href="{% url 'core:free_trial' %}">ทดลองเรียนฟรี</a> · ขั้นตอนละเอียดอยู่ใน <a href="{% url 'core:guide' %}">คู่มือการเรียน</a></p>
+  </section>
+
+  <section class="mb-5" aria-labelledby="faq-h">
+    <h2 id="faq-h" class="h4">คำถามที่พบบ่อย</h2>
+    {% for q, a in faqs %}<h3 class="h6 mt-3 mb-1">{{ q }}</h3><p class="mb-2">{{ a }}</p>{% endfor %}
+  </section>
+
+  <section aria-labelledby="contact-h">
+    <h2 id="contact-h" class="h4">ติดต่อและช่องทางติดตาม</h2>
+    <p>สอบถามก่อนสมัครหรือแจ้งปัญหาการชำระเงิน ทักแอดมินทาง LINE{% if LINE_CONTACT_URL %} (<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener">เพิ่มเพื่อน LINE</a>){% endif %} ติดตามเทคนิคภาษาอังกฤษจากพี่ใยไหมได้ที่:</p>
+    {% if SOCIAL_LINKS %}<ul class="follow-plain">{% for s in SOCIAL_LINKS %}<li><a href="{{ s.url }}" target="_blank" rel="noopener me">{% icon s.icon "" %} {{ s.label }}</a></li>{% endfor %}</ul>{% endif %}
+  </section>
+</div>
+{% endblock %}

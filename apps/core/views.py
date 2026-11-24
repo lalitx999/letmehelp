@@ -5,6 +5,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.views.decorators.cache import cache_control
 
+from apps.core import seo
 from apps.courses.selectors.course_selector import free_preview_lessons, search_published_courses
 
 
@@ -40,7 +41,8 @@ def _course_posters():
 
 
 def home(request):
-    return render(request, "core/home.html", {"posters": _course_posters(), "faqs": FAQS})
+    schema = seo.graph(seo.organization(), seo.website(), seo.instructor(), seo.faq_page(FAQS, "/"))
+    return render(request, "core/home.html", {"posters": _course_posters(), "faqs": FAQS, "schema": schema})
 
 
 def robots_txt(request):
@@ -126,4 +128,65 @@ GUIDE_TIPS = [
 
 
 def guide(request):
-    return render(request, "core/guide.html", {"faqs": FAQS, "tips": GUIDE_TIPS})
+    schema = seo.graph(seo.faq_page(FAQS, request.path), seo.breadcrumbs([("หน้าแรก", "/"), ("คู่มือการเรียน", request.path)]))
+    return render(request, "core/guide.html", {"faqs": FAQS, "tips": GUIDE_TIPS, "schema": schema})
+
+
+# ---- AEO: หน้าข้อมูลให้คนและ AI อ้างอิง + llms.txt ----------------------------------------------
+ABOUT_UPDATED = "24 พฤศจิกายน 2569"  # แก้ทุกครั้งที่ปรับเนื้อหาหน้าเกี่ยวกับเรา
+
+
+def _course_facts():
+    """คอร์สที่เปิดขาย + ราคาปัจจุบันจากฐานข้อมูลจริง (ไม่เขียนราคาตายตัวในหน้า)"""
+    out = []
+    for c in search_published_courses():
+        out.append({"c": c, "url": reverse("courses:detail", args=[c.slug]), "lessons": c.lesson_count})
+    return out
+
+
+def about(request):
+    schema = seo.graph(
+        seo.organization(), seo.instructor(),
+        {"@type": "AboutPage", "@id": seo.abs_url(request.path), "url": seo.abs_url(request.path), "name": "เกี่ยวกับ Let Me Help และพี่ใยไหม",
+         "about": {"@id": seo.abs_url("/#organization")}, "inLanguage": "th-TH", "dateModified": "2026-11-24"},
+        seo.faq_page(FAQS, request.path),
+        seo.breadcrumbs([("หน้าแรก", "/"), ("เกี่ยวกับเรา", request.path)]),
+    )
+    return render(request, "core/about.html", {
+        "seo": seo, "facts": seo.FACTS, "courses": _course_facts(), "faqs": FAQS, "steps": GUIDE_TIPS[:3],
+        "updated": ABOUT_UPDATED, "schema": schema,
+    })
+
+
+def _llms_context(full: bool):
+    from apps.core.services import settings_service
+
+    return {
+        "seo": seo, "site": settings.SITE_URL.rstrip("/"), "courses": _course_facts(), "faqs": FAQS, "facts": seo.FACTS,
+        "tips": GUIDE_TIPS, "socials": settings_service.social_links(), "line": settings_service.get("LINE_CONTACT_URL"),
+        "full": full, "updated": ABOUT_UPDATED,
+        "curricula": _curricula() if full else [],
+    }
+
+
+def _curricula():
+    """สารบัญบทเรียนของทุกคอร์ส (ชื่อบท/คลิป) — ให้ AI ตอบได้ว่าคอร์สสอนเรื่องอะไรบ้าง"""
+    from apps.courses.selectors.course_selector import get_course_with_content
+
+    out = []
+    for x in _course_facts():
+        full = get_course_with_content(x["c"].pk)
+        out.append({"x": x, "course": full, "sections": [(s, list(s.lessons.all())) for s in full.sections.all()]})
+    return out
+
+
+@cache_control(max_age=3600)
+def llms_txt(request):
+    """https://llmstxt.org — สรุปเว็บเป็น Markdown ให้ AI อ่าน (สั้น: ลิงก์ไปหน้าสำคัญ)"""
+    return render(request, "core/llms.txt", _llms_context(False), content_type="text/markdown; charset=utf-8")
+
+
+@cache_control(max_age=3600)
+def llms_full_txt(request):
+    """ฉบับเต็ม: ข้อมูลทั้งหมดในไฟล์เดียว (คอร์ส ราคา เนื้อหาบทเรียน คำถามที่พบบ่อย วิธีสมัคร)"""
+    return render(request, "core/llms.txt", _llms_context(True), content_type="text/markdown; charset=utf-8")

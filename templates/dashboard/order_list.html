@@ -52,4 +52,4 @@
 </div>
 {% include "partials/_pagination.html" with page=ls.page %}
 {% endblock %}
-{% block extra_js %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/dashboard.js' %}" defer></script>{% endblock %}

@@ -309,3 +309,57 @@ class ProtectedPlayerTests(BaseCase):
         r = self.client.get(reverse("learning:player_lesson", args=["c", l2.pk]))
         self.assertContains(r, 'id="pl-shield"')
         self.assertNotContains(r, 'class="pl-wm"')
+
+
+class SeoAeoTests(BaseCase):
+    """schema.org JSON-LD ถูกต้อง (parse ได้) + หน้าเกี่ยวกับเรา + llms.txt"""
+
+    def _graph(self, url):
+        import json
+        import re
+
+        html = self.client.get(url).content.decode()
+        blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+        self.assertTrue(blocks, url)
+        nodes = []
+        for b in blocks:
+            data = json.loads(b)
+            nodes += data.get("@graph", [data])
+        return {n["@type"]: n for n in nodes}
+
+    def test_home_has_organization_website_person_faq(self):
+        g = self._graph(reverse("core:home"))
+        self.assertEqual(set(g) >= {"EducationalOrganization", "WebSite", "Person", "FAQPage"}, True, g.keys())
+        self.assertIn("https://www.youtube.com/@letmehelp.eng4848", g["EducationalOrganization"]["sameAs"])
+        self.assertEqual(g["Person"]["alumniOf"]["name"], "จุฬาลงกรณ์มหาวิทยาลัย")
+
+    def test_course_page_has_course_offer_instance_and_breadcrumbs(self):
+        g = self._graph(reverse("courses:detail", args=["c"]))
+        c = g["Course"]
+        self.assertEqual((c["offers"][0]["price"], c["offers"][0]["priceCurrency"]), ("500.00", "THB"))
+        self.assertEqual(c["hasCourseInstance"][0]["courseMode"], "Online")
+        self.assertEqual(c["hasCourseInstance"][0]["courseWorkload"], "PT2M")  # คลิป 100 วินาที
+        self.assertEqual(len(g["BreadcrumbList"]["itemListElement"]), 3)
+        self.assertIn("ItemList", self._graph(reverse("courses:list")))
+
+    def test_about_page_answers_first_with_live_price(self):
+        r = self.client.get(reverse("core:about"))
+        self.assertContains(r, "พี่ใยไหมคือผู้สอนและผู้ก่อตั้ง Let Me Help")
+        self.assertContains(r, "฿500")
+        self.assertIn("AboutPage", self._graph(reverse("core:about")))
+        self.assertIn("FAQPage", self._graph(reverse("core:guide")))
+
+    def test_llms_txt_and_full(self):
+        r = self.client.get("/llms.txt")
+        self.assertTrue(r["Content-Type"].startswith("text/markdown"))
+        body = r.content.decode()
+        self.assertTrue(body.startswith("# Let Me Help"))
+        self.assertIn("ราคา 500 บาท", body)
+        self.assertNotIn("M7lc1UVf-VE", body)  # ไม่เผย video id
+        full = self.client.get("/llms-full.txt").content.decode()
+        self.assertIn("สารบัญ:", full)
+        self.assertIn("   - L", full)
+        self.assertEqual(self.client.get("/llm.txt").status_code, 301)
+
+    def test_sitemap_lists_about(self):
+        self.assertContains(self.client.get("/sitemap.xml"), "/about/")

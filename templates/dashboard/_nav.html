@@ -9,6 +9,7 @@
   <div class="adm-group">ผู้ใช้</div>
   <a class="adm-link {% if 'student' in name or name == 'user_password' %}active{% endif %}" href="{% url 'dashboard:student_list' %}">{% icon "people" %}<span>นักเรียน</span></a>
   <a class="adm-link {% if 'enrollment' in name %}active{% endif %}" href="{% url 'dashboard:enrollment_list' %}">{% icon "clock-history" %}<span>สิทธิ์เรียน</span></a>
+  <a class="adm-link {% if name == 'broadcast' %}active{% endif %}" href="{% url 'dashboard:broadcast' %}">{% icon "megaphone" %}<span>ส่งอีเมลประกาศ</span></a>
 
   <div class="adm-group">การเงิน</div>
   <a class="adm-link {% if 'order' in name or 'slip' in name %}active{% endif %}" href="{% url 'dashboard:order_list' %}">{% icon "wallet2" %}<span>การชำระเงิน</span>{% if ADMIN_PENDING_SLIPS %}<b class="adm-badge">{{ ADMIN_PENDING_SLIPS }}</b>{% endif %}</a>

@@ -2,7 +2,8 @@
 {% load ui %}
 {% block dash_title %}นักเรียน{% endblock %}
 {% block dash_content %}
-<div class="mb-3"><span class="lbl d-block mb-1">ผู้ใช้</span><h1 class="h3 mb-0">นักเรียน <span class="text-secondary fs-6 fw-normal">({{ ls.total }})</span></h1></div>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3"><div><span class="lbl d-block mb-1">ผู้ใช้</span><h1 class="h3 mb-0">นักเรียน <span class="text-secondary fs-6 fw-normal">({{ ls.total }})</span></h1></div>
+  <div class="d-flex gap-2"><a href="{% url 'dashboard:student_import' %}" class="btn btn-outline-dark btn-sm">{% icon "upload" %} นำเข้าจาก CSV</a><a href="{% url 'dashboard:broadcast' %}" class="btn btn-outline-dark btn-sm">{% icon "megaphone" %} ส่งอีเมลประกาศ</a></div></div>
 {% url 'dashboard:student_add' as create_url %}
 {% include "dashboard/_toolbar.html" with placeholder="ชื่อ / อีเมล / เบอร์โทร" create_url=create_url create_label="เพิ่มนักเรียน" filters=filters_ui %}
 <div class="dash-card p-0 table-responsive">

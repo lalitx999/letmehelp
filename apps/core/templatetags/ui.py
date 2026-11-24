@@ -112,3 +112,16 @@ def sort_th(context, key, label):
     elif cur == "-" + key:
         arrow = icon("arrow-down-short")
     return format_html('<a class="sort-link" href="?{}">{}{}</a>', urlencode(params), label, arrow)
+
+
+@register.simple_tag
+def jsonld(data):
+    """<script type="application/ld+json"> จาก dict (escape < > & กัน </script> injection)"""
+    import json
+
+    from django.utils.safestring import mark_safe
+
+    if not data:
+        return ""
+    body = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return mark_safe(f'<script type="application/ld+json">{body}</script>')

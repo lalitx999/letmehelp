@@ -1,7 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
+from django.contrib.auth.forms import PasswordResetForm as DjangoPasswordResetForm
+from django.contrib.auth.views import (
+    LoginView, LogoutView, PasswordChangeView, PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView, PasswordResetView,
+)
+from django.core.cache import cache
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -69,3 +73,42 @@ class SitePasswordChangeView(PasswordChangeView):  # PasswordChangeView บั�
             f.widget.attrs["class"] = "form-control"
             f.help_text = ""
         return form
+
+
+# ---- ลืมรหัสผ่าน / ตั้งรหัสผ่านครั้งแรก (นักเรียนที่แอดมินนำเข้า) ----------------------------------
+class SitePasswordResetForm(DjangoPasswordResetForm):
+    def get_users(self, email):
+        """ของ Django ข้ามบัญชีที่ยังไม่มีรหัสผ่าน — แต่นักเรียนที่แอดมินนำเข้ายังไม่มี จึงต้องรวมด้วย"""
+        from .models import User
+
+        return User.objects.filter(email__iexact=email, is_active=True)
+
+
+class SitePasswordResetView(PasswordResetView):
+    template_name = "accounts/password_reset.html"
+    form_class = SitePasswordResetForm
+    email_template_name = "accounts/email/password_reset.txt"
+    subject_template_name = "accounts/email/password_reset_subject.txt"
+    success_url = reverse_lazy("accounts:password_reset_done")
+
+    def form_valid(self, form):
+        # กันยิงขอลิงก์รัวๆ: 5 ครั้ง / 15 นาที ต่อ IP (ตอบเหมือนเดิมเสมอ ไม่บอกว่ามีอีเมลนี้หรือไม่)
+        key = f"pwreset:{self.request.META.get('REMOTE_ADDR', '')}"
+        n = cache.get(key, 0)
+        if n >= 5:
+            return redirect(self.success_url)
+        cache.set(key, n + 1, 15 * 60)
+        return super().form_valid(form)
+
+
+class SitePasswordResetDoneView(PasswordResetDoneView):
+    template_name = "accounts/password_reset_done.html"
+
+
+class SitePasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = "accounts/password_reset_confirm.html"
+    success_url = reverse_lazy("accounts:password_reset_complete")
+
+
+class SitePasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = "accounts/password_reset_complete.html"
