@@ -284,3 +284,28 @@ class CoverTests(BaseCase):
         self.assertEqual(course_cover(c), "https://example.com/a.jpg")
         c.cover_url = "/static/img/covers/tgat.jpg"
         self.assertTrue(course_cover(c).endswith("img/covers/tgat.jpg"))
+
+    def test_auto_cover_never_uses_a_paid_lesson_video(self):
+        """ภาพปกจาก YouTube มี video id ใน URL — ห้ามใช้คลิปที่ต้องซื้อ (หน้ารายการคอร์สเปิดให้ทุกคน)"""
+        from apps.courses.selectors.course_selector import featured_courses
+        self.assertIsNone(featured_courses()[0].first_video_id)
+        self.assertNotContains(self.client.get(reverse("courses:list")), "M7lc1UVf-VE")
+        Lesson.objects.create(section=self.lesson.section, title="Free", youtube_video_id="FREEvid0001", order=2, is_free_preview=True)
+        self.assertEqual(featured_courses()[0].first_video_id, "FREEvid0001")
+
+
+class ProtectedPlayerTests(BaseCase):
+    def test_player_page_has_shield_and_watermark(self):
+        enrollment_service.grant_or_extend(user=self.user, course=self.course)
+        self.client.force_login(self.user)
+        r = self.client.get(reverse("learning:player_lesson", args=["c", self.lesson.pk]))
+        self.assertContains(r, 'id="pl-shield"')
+        self.assertContains(r, 'class="pl-wm"')
+        self.assertContains(r, "s@x.com")
+        self.assertContains(r, "is-protected")
+
+    def test_free_preview_for_anonymous_has_no_watermark(self):
+        l2 = Lesson.objects.create(section=self.lesson.section, title="L2", youtube_video_id="M7lc1UVf-VE", order=2, is_free_preview=True)
+        r = self.client.get(reverse("learning:player_lesson", args=["c", l2.pk]))
+        self.assertContains(r, 'id="pl-shield"')
+        self.assertNotContains(r, 'class="pl-wm"')

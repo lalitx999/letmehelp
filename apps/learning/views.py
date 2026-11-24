@@ -96,6 +96,8 @@ def player(request, slug, lesson_id=None):
             "can_track": enrollment is not None,
             "next_lesson": all_lessons[idx + 1] if idx + 1 < len(all_lessons) else None,
             "enrollment": enrollment,
+            # ลายน้ำบนวิดีโอ: ถ้ามีคนอัดจอไปแจก จะรู้ว่าเป็นบัญชีไหน
+            "watermark": request.user.email if authed else "",
         },
     )
 

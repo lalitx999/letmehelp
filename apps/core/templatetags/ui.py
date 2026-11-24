@@ -71,7 +71,7 @@ def initial(name):
 
 @register.simple_tag
 def course_cover(course):
-    """URL ภาพปกคอร์ส ตามลำดับ: รูปที่อัปโหลด > ลิงก์ภาพ (cover_url) > ภาพจาก YouTube ของคลิปแรก > ว่าง"""
+    """URL ภาพปกคอร์ส ตามลำดับ: รูปที่อัปโหลด > ลิงก์ภาพ (cover_url) > ภาพจาก YouTube ของคลิปดูฟรีแรก > ว่าง"""
     from django.templatetags.static import static
 
     thumb = getattr(course, "thumbnail", None)

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static ui %}
+{% block body_class %}{{ block.super }} is-protected{% endblock %}
 {% block title %}{{ lesson.title }} — {{ course.title }}{% endblock %}
 {% block content %}
 <section class="lesson-head">
@@ -26,27 +27,52 @@
 <div class="container-xl py-3 py-lg-4">
   <div class="row g-4">
     <div class="col-lg-8">
-      <div class="player-frame"
-           id="player-root"
-           data-video-id="{{ lesson.youtube_video_id }}"
-           data-lesson-id="{{ lesson.pk }}"
-           data-start="{{ start_at }}"
-           data-track="{% if can_track %}1{% else %}0{% endif %}"
-           data-progress-url="{% url 'learning:save_progress' %}"
-           data-next-url="{% if next_lesson %}{% url 'learning:player_lesson' course.slug next_lesson.pk %}{% endif %}">
-        <div id="yt-player"></div>
-      </div>
+      <!-- วิดีโอแบบป้องกันลิงก์: ซ่อนปุ่มของ YouTube (controls=0) ตัว iframe ไม่รับเมาส์ มีแผ่นใสทับ แล้วใช้แถบปุ่มของเราเอง -->
+      <div class="pl-stage" id="pl-stage">
+        <div class="player-frame"
+             id="player-root"
+             data-video-id="{{ lesson.youtube_video_id }}"
+             data-lesson-id="{{ lesson.pk }}"
+             data-start="{{ start_at }}"
+             data-track="{% if can_track %}1{% else %}0{% endif %}"
+             data-progress-url="{% url 'learning:save_progress' %}"
+             data-next-url="{% if next_lesson %}{% url 'learning:player_lesson' course.slug next_lesson.pk %}{% endif %}">
+          <div id="yt-player"></div>
+          <div class="pl-shield" id="pl-shield" title="คลิกเพื่อเล่น/หยุด · ดับเบิลคลิกเพื่อเต็มจอ"></div>
+          <div class="pl-guard is-top" aria-hidden="true"></div>
+          <div class="pl-guard is-bottom" aria-hidden="true"></div>
+          <button type="button" class="pl-bigplay" id="pl-bigplay" aria-label="เล่นวิดีโอ">{% icon "play-fill" %}</button>
+          <div class="pl-taphint" id="pl-taphint" hidden>แตะปุ่มเล่นกลางวิดีโอเพื่อเริ่ม</div>
+          {% if watermark %}<div class="pl-wm" id="pl-wm" aria-hidden="true">{{ watermark }}</div>{% endif %}
+          <div class="pl-end" id="pl-end" hidden>
+            <p class="mb-3">จบคลิปนี้แล้ว</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+              <button type="button" class="btn btn-ghost-light" id="pl-replay">{% icon "arrow-counterclockwise" %} ดูอีกครั้ง</button>
+              {% if next_lesson %}<a href="{% url 'learning:player_lesson' course.slug next_lesson.pk %}" class="btn btn-white">คลิปถัดไป {% icon "chevron-right" %}</a>{% endif %}
+            </div>
+          </div>
+        </div>
 
-      <div class="player-bar" id="player-bar" role="toolbar" aria-label="ปุ่มควบคุมวิดีโอ">
-        <button type="button" class="btn btn-light btn-sm" id="pl-back" title="ย้อนหลัง 10 วินาที">{% icon "skip-backward-fill" %} 10 วิ</button>
-        <button type="button" class="btn btn-light btn-sm" id="pl-fwd" title="ข้ามไปข้างหน้า 10 วินาที">10 วิ {% icon "skip-forward-fill" %}</button>
-        <label class="pl-rate" title="ความเร็วในการเล่น">{% icon "lightning-charge" %}
-          <select id="pl-rate" class="form-select form-select-sm" aria-label="ความเร็ว">
-            <option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option>
-          </select>
-        </label>
-        {% if can_track %}<button type="button" class="btn btn-light btn-sm" id="pl-stamp" title="แทรกเวลาลงสมุดโน้ต">{% icon "journal-text" %} จดโน้ต</button>{% endif %}
-        <button type="button" class="btn btn-light btn-sm ms-auto" id="pl-full" title="เต็มจอ">{% icon "window-stack" %} เต็มจอ</button>
+        <div class="player-bar" id="player-bar" role="toolbar" aria-label="ปุ่มควบคุมวิดีโอ">
+          <div class="pl-seek">
+            <button type="button" class="pl-btn is-main" id="pl-play" aria-label="เล่น" title="เล่น/หยุด (Space)">{% icon "play-fill" %}</button>
+            <span class="pl-time" id="pl-cur">0:00</span>
+            <input type="range" id="pl-range" class="pl-range" min="0" max="0" step="1" value="0" aria-label="ตำแหน่งวิดีโอ">
+            <span class="pl-time" id="pl-dur">0:00</span>
+          </div>
+          <div class="pl-tools">
+            <button type="button" class="pl-btn" id="pl-back" title="ย้อนหลัง 10 วินาที (←)">{% icon "skip-backward-fill" %}<span>10 วิ</span></button>
+            <button type="button" class="pl-btn" id="pl-fwd" title="ข้ามไปข้างหน้า 10 วินาที (→)"><span>10 วิ</span>{% icon "skip-forward-fill" %}</button>
+            <button type="button" class="pl-btn" id="pl-mute" aria-label="ปิดเสียง" title="ปิด/เปิดเสียง (M)">{% icon "volume-up" %}</button>
+            <label class="pl-rate" title="ความเร็วในการเล่น">{% icon "lightning-charge" %}
+              <select id="pl-rate" class="form-select form-select-sm" aria-label="ความเร็ว">
+                <option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option>
+              </select>
+            </label>
+            {% if can_track %}<button type="button" class="pl-btn" id="pl-stamp" title="แทรกเวลาลงสมุดโน้ต">{% icon "journal-text" %}<span>จดโน้ต</span></button>{% endif %}
+            <button type="button" class="pl-btn ms-auto" id="pl-full" aria-label="เต็มจอ" title="เต็มจอ (F)">{% icon "fullscreen" %}</button>
+          </div>
+        </div>
       </div>
 
       <div class="mt-3">

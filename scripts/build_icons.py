@@ -25,6 +25,10 @@ three-dots three-dots-vertical files star star-fill toggle-on toggle-off arrow-c
 
 # ไอคอนที่ Bootstrap Icons ไม่มี (วาดเอง)
 CUSTOM = [
+    '<symbol id="volume-up" viewBox="0 0 16 16"><path d="M1.5 5.75h2.6L7.6 2.9a.5.5 0 0 1 .82.39v9.42a.5.5 0 0 1-.82.39L4.1 10.25H1.5a.5.5 0 0 1-.5-.5v-3.5a.5.5 0 0 1 .5-.5Z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M10.6 5.6a3.4 3.4 0 0 1 0 4.8M12.6 3.6a6.2 6.2 0 0 1 0 8.8"/></symbol>',
+    '<symbol id="volume-mute" viewBox="0 0 16 16"><path d="M1.5 5.75h2.6L7.6 2.9a.5.5 0 0 1 .82.39v9.42a.5.5 0 0 1-.82.39L4.1 10.25H1.5a.5.5 0 0 1-.5-.5v-3.5a.5.5 0 0 1 .5-.5Z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="m10.8 6 4 4m0-4-4 4"/></symbol>',
+    '<symbol id="fullscreen" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M1.75 5.5V1.75H5.5m5 0h3.75V5.5m0 5v3.75H10.5m-5 0H1.75V10.5"/></symbol>',
+    '<symbol id="fullscreen-exit" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M5.5 1.75V5.5H1.75m12.5 0H10.5V1.75m0 12.5V10.5h3.75m-12.5 0H5.5v3.75"/></symbol>',
     '<symbol id="lemon8" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .5a3.6 3.6 0 0 0-2.4 6.3A4.1 4.1 0 0 0 8 15.5a4.1 4.1 0 0 0 2.4-8.7A3.6 3.6 0 0 0 8 .5Zm0 1.8a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6Zm0 5.4a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6Z"/></symbol>',
 ]
 

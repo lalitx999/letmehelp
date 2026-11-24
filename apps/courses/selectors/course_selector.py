@@ -8,9 +8,10 @@ _CARD_FIELDS = (
 )
 
 
-# วิดีโอแรกของคอร์ส — ใช้ดึงภาพปกอัตโนมัติจาก YouTube เมื่อไม่ได้ตั้งรูปปก
+# คลิป "ดูฟรี" แรกของคอร์ส — ใช้ดึงภาพปกอัตโนมัติจาก YouTube เมื่อไม่ได้ตั้งรูปปก
+# ใช้เฉพาะคลิปดูฟรี: ภาพจาก i.ytimg.com มี video id อยู่ใน URL ถ้าใช้คลิปที่ต้องซื้อ = เผยลิงก์คลิปให้คนทั่วไป
 _FIRST_VIDEO = Subquery(
-    Lesson.objects.filter(section__course=OuterRef("pk"), section__deleted_at__isnull=True).order_by("section__order", "order").values("youtube_video_id")[:1]
+    Lesson.objects.filter(section__course=OuterRef("pk"), section__deleted_at__isnull=True, is_free_preview=True).order_by("section__order", "order").values("youtube_video_id")[:1]
 )
 
 
