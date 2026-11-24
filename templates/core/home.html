@@ -7,55 +7,70 @@
 {% endblock %}
 {% block content %}
 
-<!-- Hero: หัวข้อกลางจอ + การ์ดลอยรอบๆ บนพื้นเบลอ -->
+<!-- Hero: โลโก้ + หัวข้อ + ผู้สอน + จุดเด่น 4 ข้อ + ภาพประกอบ -->
 <section class="hero">
-  <span class="glow gray" aria-hidden="true"></span>
-  <span class="glow red" aria-hidden="true"></span>
   <span class="glow blue" aria-hidden="true"></span>
+  <span class="glow red" aria-hidden="true"></span>
+  <span class="glow orange" aria-hidden="true"></span>
 
   <div class="container hero-inner">
-    <span class="lbl">คอร์สติวภาษาอังกฤษออนไลน์ TGAT · A-Level</span>
-    <h1 class="hero-title"><span class="soft d-block">อังกฤษไม่ยาก</span>ถ้ามีคน<span class="accent">สอนให้เข้าใจ</span></h1>
-    <p class="hero-tag">มานี่เดี๋ยวพี่สอน — คลิปสั้นเข้าใจง่าย ดูซ้ำได้ทุกที่ พร้อมเอกสารประกอบ และระบบที่ช่วยให้เรียนต่อเนื่องจนถึงวันสอบ</p>
+    <img src="{% static 'img/logo.png' %}" alt="Let Me Help มานี่เดี๋ยวพี่สอน" class="hero-logo" width="727" height="316">
+    <h1 class="hero-title"><span class="soft d-block">อังกฤษสนุก เข้าใจง่าย</span>ประหยัดเวลา <span class="accent">คุ้มราคา</span></h1>
+    <p class="hero-tag">โดย <strong>พี่ใยไหม</strong></p>
+    <ul class="creds" aria-label="ประวัติผู้สอน">
+      <li>{% icon "mortarboard" %} อักษร จุฬาฯ 82</li>
+      <li>{% icon "trophy" %} เกียรตินิยมอันดับหนึ่ง เหรียญทอง</li>
+      <li>{% icon "star" %} ประสบการณ์ 10 ปี</li>
+    </ul>
     <div class="hero-cta">
-      <a href="{% url 'courses:list' %}" class="btn btn-dark btn-lg">ดูคอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a>
+      <a href="#courses" class="btn btn-dark btn-lg">ดูคอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a>
       <a href="{% url 'core:free_trial' %}" class="btn btn-glass btn-lg">{% icon "play-circle" %} ทดลองเรียนฟรี</a>
     </div>
     <div class="tiles">
-      <div class="tile-n glass"><b>365</b><span>วัน เรียนได้</span></div>
-      <div class="tile-n glass"><b>24/7</b><span>ดูซ้ำได้ไม่จำกัด</span></div>
-      <div class="tile-n glass"><b>10<small style="font-size:.5em"> วิ</small></b><span>ย้อนให้เมื่อเรียนต่อ</span></div>
-      <div class="tile-n glass"><b>PDF</b><span>เอกสารทุกบท</span></div>
+      <div class="tile-n glass"><span class="icon-chip sm is-red">{% icon "lightbulb" %}</span><span>สอนละเอียด<br>พร้อมเทคนิค</span></div>
+      <div class="tile-n glass"><span class="icon-chip sm is-blue">{% icon "arrow-repeat" %}</span><span>ดูซ้ำได้<br>ตลอด 1 ปี</span></div>
+      <div class="tile-n glass"><span class="icon-chip sm is-orange">{% icon "book" %}</span><span>มีทั้งไฟล์ PDF<br>และรูปเล่ม</span></div>
+      <div class="tile-n glass"><span class="icon-chip sm is-red">{% icon "patch-check" %}</span><span>ใส่ใจ<br>จนสอบผ่าน</span></div>
     </div>
-    <a href="#why" class="scroll-cue">เลื่อนลง {% icon "chevron-down" %}</a>
   </div>
 
-  <div class="floaters" aria-hidden="true">
-    <div class="floater f1"><img src="{% static 'img/covers/tgat.jpg' %}" alt="" loading="eager"><div class="cap2"><span class="icon-chip sm is-red">{% icon "mortarboard" %}</span><span>TGAT English<small>เตรียมสอบ</small></span></div></div>
-    <div class="floater note glass f2"><div class="ui-pill p-0"><span class="icon-chip sm is-orange">{% icon "fire" %}</span><span>เรียนต่อเนื่อง 12 วัน<small>บันทึกในปฏิทินให้อัตโนมัติ</small></span></div></div>
-    <div class="floater f3"><img src="{% static 'img/covers/a-level.jpg' %}" alt="" loading="eager"><div class="cap2"><span class="icon-chip sm is-blue">{% icon "journal-text" %}</span><span>A-Level English<small>อ่าน · ไวยากรณ์ · คำศัพท์</small></span></div></div>
-    <div class="floater note glass f4"><div class="ui-pill p-0"><span class="icon-chip sm is-green">{% icon "check2" %}</span><span>สลิปผ่านแล้ว<small>เปิดสิทธิ์เรียนทันที</small></span></div></div>
-    <div class="floater is-fade f5"><img src="{% static 'img/covers/laptop.jpg' %}" alt="" loading="lazy"></div>
-    <div class="floater is-fade f6"><img src="{% static 'img/covers/auth-login.jpg' %}" alt="" loading="lazy"></div>
-  </div>
-</section>
-
-<!-- Statement -->
-<section class="section" id="why">
-  <div class="container text-center">
-    <p class="statement" data-reveal><span class="soft">เตรียมสอบคนเดียวมันเหนื่อย..</span> เราจึงทำคอร์สที่เข้าใจง่าย เรียนได้ต่อเนื่อง และไม่ทิ้งให้น้องเรียนอยู่คนเดียว</p>
+  <div class="container">
+    <div class="hero-gallery" aria-hidden="true">
+      <figure style="--i:0"><img src="{% static 'img/home/hero-friends-sm.jpg' %}" srcset="{% static 'img/home/hero-friends-sm.jpg' %} 400w, {% static 'img/home/hero-friends.jpg' %} 720w" sizes="(max-width: 767px) 45vw, 24vw" alt="" width="400" height="566"></figure>
+      <figure style="--i:1"><img src="{% static 'img/home/hero-online-sm.jpg' %}" srcset="{% static 'img/home/hero-online-sm.jpg' %} 400w, {% static 'img/home/hero-online.jpg' %} 720w" sizes="(max-width: 767px) 45vw, 24vw" alt="" width="400" height="566"></figure>
+      <figure style="--i:2"><img src="{% static 'img/home/hero-desk-sm.jpg' %}" srcset="{% static 'img/home/hero-desk-sm.jpg' %} 400w, {% static 'img/home/hero-desk.jpg' %} 720w" sizes="(max-width: 767px) 45vw, 24vw" alt="" width="400" height="566" loading="lazy"></figure>
+      <figure style="--i:3"><img src="{% static 'img/home/hero-student-sm.jpg' %}" srcset="{% static 'img/home/hero-student-sm.jpg' %} 400w, {% static 'img/home/hero-student.jpg' %} 720w" sizes="(max-width: 767px) 45vw, 24vw" alt="" width="400" height="566" loading="lazy"></figure>
+    </div>
   </div>
 </section>
 
-<!-- ส่วนพื้นเข้ม + การ์ดขาว: ทำไมต้องเรา -->
-<section class="night">
+<!-- คอร์สทั้งหมด -->
+<section class="section" id="courses">
+  <div class="container">
+    <div class="text-center mb-5" data-reveal>
+      <h2 class="display-6">คอร์สทั้งหมด</h2>
+    </div>
+    <div class="posters">
+      {% for p in posters %}
+      <a href="{{ p.url }}" class="poster" data-reveal style="--i: {{ forloop.counter0 }}">
+        <img src="{% static p.image %}" alt="{{ p.title }}" width="720" height="1018" loading="lazy">
+        <span class="poster-go"><span>{{ p.title }}</span>{% icon "arrow-up-right" %}</span>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4" data-reveal>
+      <a href="{% url 'courses:list' %}" class="btn btn-outline-dark">ดูรายละเอียดคอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a>
+    </div>
+  </div>
+</section>
+
+<!-- ส่วนพื้นเข้ม + การ์ดขาว: ระบบเรียน -->
+<section class="night" id="why">
   <span class="glow red" aria-hidden="true"></span>
   <span class="glow blue" aria-hidden="true"></span>
   <div class="container">
     <div class="text-center mb-5" data-reveal>
-      <span class="lbl mb-3">ทำไมต้องเรา</span>
-      <h2 class="display-6 mt-3">ไม่ใช่แค่คลิป แต่เป็นระบบที่พาไปถึงวันสอบ</h2>
-      <p class="muted-l mx-auto mb-0" style="max-width: 34rem;">ทุกอย่างที่ต้องใช้ระหว่างเรียน อยู่ในหน้าเดียว</p>
+      <h2 class="display-6">ระบบเรียนที่อำนวยความสะดวก</h2>
     </div>
     <div class="sheet" data-reveal>
       <div class="feat">
@@ -69,18 +84,18 @@
         </div>
         <div>
           <h3>กลับมาเมื่อไหร่ <span class="text-secondary">ก็เรียนต่อได้ทันที</span></h3>
-          <p>ระบบจำตำแหน่งวิดีโอล่าสุดของแต่ละคลิป เปิดมาก็เล่นต่อจากจุดเดิม ดูซ้ำได้ไม่จำกัดตลอดอายุคอร์ส ทั้งคอม แท็บเล็ต และมือถือ</p>
+          <p>ระบบจะจดจำตำแหน่งล่าสุดของแต่ละวิดีโอ เปิดมาก็เล่นต่อจากจุดเดิม รองรับทั้งคอมพิวเตอร์ แท็บเล็ต และสมาร์ตโฟน</p>
         </div>
       </div>
       <div class="feat">
         <div class="feat-art">
           <span class="glow orange" style="width:60%;height:60%;right:-10%;top:-15%" aria-hidden="true"></span>
-          <span class="glow gray" style="width:60%;height:60%;left:-10%;bottom:-20%" aria-hidden="true"></span>
+          <span class="glow blue" style="width:60%;height:60%;left:-10%;bottom:-20%" aria-hidden="true"></span>
           <div class="ui-note glass"><span class="ts">03:12</span>Present perfect ใช้กับเหตุการณ์ที่ยังส่งผลถึงตอนนี้<br><span class="ts">07:45</span>ระวัง since / for ออกสอบบ่อย</div>
         </div>
         <div>
-          <h3>จดโน้ตไปพร้อมคลิป <span class="text-secondary">คลิกเวลาเพื่อย้อนดู</span></h3>
-          <p>สมุดโน้ตส่วนตัวบันทึกอัตโนมัติ แทรกเวลาของวิดีโอได้ในคลิกเดียว คัดลอกหรือดาวน์โหลดเก็บไว้ทบทวนก่อนสอบ พร้อมเอกสาร PDF ประกอบทุกบท</p>
+          <h3>จดโน้ตแทรกในวิดีโอ <span class="text-secondary">คลิกเวลาเพื่อย้อนดู</span></h3>
+          <p>สามารถแทรกโน้ตตามช่วงเวลาของวิดีโอได้ในคลิกเดียว คัดลอกหรือดาวน์โหลดเก็บไว้ทบทวนก่อนสอบ</p>
         </div>
       </div>
       <div class="feat">
@@ -93,80 +108,24 @@
         </div>
         <div>
           <h3>เห็นความพยายาม <span class="text-secondary">ของตัวเองทุกวัน</span></h3>
-          <p>ปฏิทินบอกวันที่เรียน เวลาเรียนจริงของเดือนนี้ และจำนวนวันต่อเนื่อง ช่วยให้เรียนสม่ำเสมอ ไม่ไปอัดเอาช่วงใกล้สอบ</p>
+          <p>ปฏิทินบอกวัน เวลาเรียนจริงของแต่ละเดือน และจำนวนวันต่อเนื่อง ช่วยให้วางแผนการเรียนได้อย่างมีประสิทธิภาพ ไม่ไปอัดช่วงใกล้สอบ</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- คอร์สล่าสุด -->
-<section class="section">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4" data-reveal>
-      <div>
-        <span class="lbl mb-3">คอร์สล่าสุด</span>
-        <h2 class="display-6 mt-3 mb-0"><span class="soft">เลือกคอร์สที่ใช่</span>แล้วเริ่มเรียนได้วันนี้</h2>
-      </div>
-      <a href="{% url 'courses:list' %}" class="btn btn-outline-dark">ดูคอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a>
-    </div>
-    {% if featured_courses %}
-    <div class="row g-4">
-      {% for c in featured_courses %}<div class="col-md-6 col-lg-4" data-reveal style="--i: {{ forloop.counter0 }}">{% include "partials/_course_card.html" %}</div>{% endfor %}
-    </div>
-    {% else %}
-    <div class="panel p-5 text-center"><span class="icon-chip lg is-ink mb-3">{% icon "hourglass-split" %}</span><p class="mb-0 text-secondary">กำลังเตรียมคอร์สแรก โปรดติดตามเร็วๆ นี้</p></div>
-    {% endif %}
-  </div>
-</section>
-
-<!-- Subjects -->
-<section class="section pt-0" id="subjects">
+<!-- ขั้นตอนสมัครเรียน -->
+<section class="section" id="how">
   <div class="container">
     <div class="text-center mb-5" data-reveal>
-      <span class="lbl mb-3">วิชาที่เปิดสอน</span>
-      <h2 class="display-6 mx-auto mt-3" style="max-width: 760px;"><span class="soft">เริ่มจากสอบใหญ่</span>แล้วต่อยอดทุกทักษะ</h2>
-    </div>
-    <div class="row g-4">
-      {% for sj in subjects %}{% cat_style sj.cat.slug as st %}
-      <div class="col-md-6" data-reveal style="--i: {{ forloop.counter0 }}">
-        <a href="{% url 'courses:list' %}?category={{ sj.cat.slug }}" class="subject">
-          <div class="ph {{ st.0 }}">{% if sj.image %}<img src="{% static sj.image %}" alt="" loading="lazy">{% endif %}</div>
-          <div class="body glass">
-            <div>
-              <span class="small text-secondary">{{ sj.cat.name }}</span>
-              <h3>{{ sj.cat.description|default:sj.cat.name }}</h3>
-            </div>
-            <span class="go">{% icon "arrow-up-right" %}</span>
-          </div>
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-    {% if soon %}
-    <div class="row g-3 mt-2">
-      {% for name, desc, ic in soon %}
-      <div class="col-sm-6 col-lg-3" data-reveal style="--i: {{ forloop.counter0 }}">
-        <div class="surface p-3 h-100 d-flex gap-3 align-items-start" style="border-style: dashed; box-shadow:none"><span class="icon-chip sm is-ink">{% icon ic "" %}</span><div><div class="fw-medium">{{ name }}</div><div class="small text-secondary">{{ desc }}</div><span class="chip mt-2">เร็วๆ นี้</span></div></div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-</section>
-
-<!-- Steps -->
-<section class="section pt-0" id="how">
-  <div class="container">
-    <div class="text-center mb-5" data-reveal>
-      <span class="lbl mb-3">วิธีเรียน</span>
-      <h2 class="display-6 mt-3"><span class="soft">ง่ายกว่าที่คิด</span>เริ่มเรียนได้ใน 4 ขั้น</h2>
+      <h2 class="display-6"><span class="soft">ขั้นตอนสมัครเรียน</span>เริ่มเรียนได้ใน 4 ขั้น</h2>
     </div>
     <div class="steps">
-      <div class="step" data-reveal style="--i:0"><span class="step-n">1</span><h3>สมัครสมาชิก</h3><p>กรอกชื่อ เบอร์โทร และอีเมล ใช้เวลาไม่ถึงหนึ่งนาที</p></div>
+      <div class="step" data-reveal style="--i:0"><span class="step-n">1</span><h3>สมัครสมาชิก</h3><p>กรอกชื่อ เบอร์โทร และอีเมล</p></div>
       <div class="step" data-reveal style="--i:1"><span class="step-n">2</span><h3>เลือกคอร์ส</h3><p>ดูเนื้อหาในคอร์สและคลิปตัวอย่างก่อนตัดสินใจ</p></div>
-      <div class="step" data-reveal style="--i:2"><span class="step-n">3</span><h3>โอนผ่าน PromptPay</h3><p>สแกน QR ตามยอด อัปโหลดสลิป ระบบตรวจให้อัตโนมัติ</p></div>
-      <div class="step is-last" data-reveal style="--i:3"><span class="step-n">{% icon "play-fill" %}</span><h3>เริ่มเรียนทันที</h3><p>เปิดสิทธิ์เมื่อสลิปผ่าน เรียนได้ทุกอุปกรณ์</p></div>
+      <div class="step" data-reveal style="--i:2"><span class="step-n">3</span><h3>สแกน QR PromptPay</h3><p>โอนเงินตามยอด อัปโหลดสลิป ระบบจะตรวจให้อัตโนมัติ</p></div>
+      <div class="step is-last" data-reveal style="--i:3"><span class="step-n">{% icon "play-fill" %}</span><h3>เริ่มเรียนทันที</h3><p>ระบบอนุมัติเมื่อสลิปผ่าน เรียนได้ทุกอุปกรณ์</p></div>
     </div>
   </div>
 </section>
@@ -176,8 +135,7 @@
   <div class="container">
     <div class="row gx-lg-5 gy-5">
       <div class="col-lg-4" data-reveal>
-        <span class="lbl mb-3">FAQ</span>
-        <h2 class="display-6 mt-3">คำถามที่พบบ่อย</h2>
+        <h2 class="display-6">คำถามที่พบบ่อย</h2>
         <p class="text-secondary">รวมคำตอบสั้นๆ เกี่ยวกับการเรียนและการชำระเงิน</p>
         <a href="{% url 'core:guide' %}" class="link-dash">คู่มือการเรียน {% icon "arrow-right" %}</a>
       </div>
@@ -195,16 +153,22 @@
   </div>
 </section>
 
-<!-- CTA ปิดท้าย -->
-<section class="night cta-end">
+<!-- ช่องทางติดตาม -->
+{% if SOCIAL_LINKS or LINE_CONTACT_URL %}
+<section class="night cta-end" id="follow">
   <span class="glow red" aria-hidden="true"></span>
   <span class="glow blue" aria-hidden="true"></span>
   <div class="container text-center" data-reveal>
-    <h2 class="display-6 mx-auto" style="max-width: 40rem;">สอบใกล้เข้ามาทุกวัน<br><span style="color: rgba(255,255,255,.55)">เริ่มวันนี้ ยังทันเสมอ</span></h2>
-    <div class="hero-cta">
-      <a href="{% if user.is_authenticated %}{% url 'courses:list' %}{% else %}{% url 'accounts:register' %}{% endif %}" class="btn btn-white btn-lg">{% if user.is_authenticated %}เลือกคอร์ส{% else %}สมัครเรียน{% endif %} {% icon "arrow-right" "icon-arrow" %}</a>
-      <a href="{% url 'core:free_trial' %}" class="btn btn-ghost-light btn-lg">{% icon "play-circle" %} ทดลองเรียนฟรี</a>
-    </div>
+    <h2 class="display-6 mb-4">ช่องทางติดตามพี่ใยไหม</h2>
+    {% if SOCIAL_LINKS %}
+    <ul class="follow-list">
+      {% for s in SOCIAL_LINKS %}<li><a href="{{ s.url }}" target="_blank" rel="noopener noreferrer me" class="follow is-{{ s.icon }}">{% icon s.icon "" %}<span>{{ s.label }}</span></a></li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% if LINE_CONTACT_URL %}
+    <p class="follow-line">มีคำถาม ทักแชทได้ทาง <a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-white btn-sm ms-1">{% icon "line" "" %} LINE</a></p>
+    {% endif %}
   </div>
 </section>
+{% endif %}
 {% endblock %}

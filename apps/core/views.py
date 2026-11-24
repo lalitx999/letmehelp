@@ -2,55 +2,45 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
+from django.urls import reverse
 from django.views.decorators.cache import cache_control
 
-from apps.courses.selectors.course_selector import featured_courses, free_preview_lessons, list_categories
+from apps.courses.selectors.course_selector import free_preview_lessons, search_published_courses
 
-
-# หมวดที่วางแผนเปิดในอนาคต (ยังไม่มีคอร์ส) — แสดงเป็นแผนงานบนหน้าแรก
-UPCOMING_SUBJECTS = [
-    ("Grammar", "ไวยากรณ์ตั้งแต่พื้นฐานถึงออกสอบ", "spellcheck"),
-    ("Vocab", "คำศัพท์ที่ใช้บ่อยในข้อสอบ", "book-half"),
-    ("Conversation", "สนทนาและสำนวนในชีวิตจริง", "chat-dots"),
-    ("Reading", "เทคนิคอ่านจับใจความ", "journal-text"),
-]
 
 FAQS = [
-    ("ซื้อคอร์สแล้วเรียนได้นานแค่ไหน", "แต่ละคอร์สกำหนดอายุการเรียนไว้ชัดเจนในหน้ารายละเอียดคอร์ส เมื่อชำระเงินและสลิปผ่านการตรวจ ระบบจะเปิดสิทธิ์ให้ทันที และดูซ้ำได้ไม่จำกัดครั้งตลอดอายุคอร์ส"),
-    ("ชำระเงินอย่างไร", "สแกน QR PromptPay ตามยอดของคอร์ส แล้วอัปโหลดสลิปในหน้าชำระเงิน ระบบจะตรวจยอดและบัญชีผู้รับให้อัตโนมัติ หากตรวจอัตโนมัติไม่ได้ ผู้ดูแลจะช่วยตรวจให้"),
-    ("ดูบนมือถือหรือแท็บเล็ตได้ไหม", "ได้ เว็บรองรับทั้งคอมพิวเตอร์ แท็บเล็ต และสมาร์ตโฟน และเพิ่มเป็นไอคอนบนหน้าจอมือถือให้ใช้งานเหมือนแอปได้"),
-    ("ถ้าปิดวิดีโอกลางคลิป จะเรียนต่อได้ไหม", "ได้ ระบบจำตำแหน่งล่าสุดที่เรียนค้างไว้ และเมื่อกลับมาจะถอยหลังให้อัตโนมัติ 10 วินาทีเพื่อให้ต่อเรื่องได้ทัน"),
+    ("ชำระเงินอย่างไร", "สแกน QR PromptPay ตามยอดของคอร์ส แล้วอัปโหลดสลิปในหน้าชำระเงิน ระบบจะตรวจยอดและบัญชีผู้รับให้อัตโนมัติ หากมีข้อผิดพลาดใดๆ สามารถติดต่อแอดมินผ่าน LINE: araremm ได้เลย"),
+    ("ซื้อคอร์สแล้วเรียนได้นานแค่ไหน", "แต่ละคอร์สมีอายุ 1 ปี เมื่อชำระเงินและสลิปผ่านการตรวจ ระบบจะอนุมัติให้ และสามารถเรียนได้ทันที"),
+    ("ดูบนอุปกรณ์ใดได้บ้าง", "เว็บไซต์รองรับทั้งคอมพิวเตอร์ แท็บเล็ต และสมาร์ตโฟน และสามารถเพิ่มเป็นไอคอนบนหน้าจอมือถือให้ใช้งานเหมือนแอปพลิเคชันได้"),
+    ("ถ้าปิดวิดีโอกลางคัน ครั้งหน้าจะเรียนต่อได้ไหม", "ได้ ระบบจะจดจำตำแหน่งล่าสุดที่เรียนค้างไว้ พร้อมถอยหลังให้อัตโนมัติ 10 วินาทีเพื่อให้ปะติดปะต่อเนื้อหาเดิมได้"),
     ("คอร์สใกล้หมดอายุ ต่ออายุได้ไหม", "ได้ ระบบจะส่งอีเมลแจ้งเตือนก่อนหมดอายุ และกดต่ออายุได้จากหน้า Dashboard วันที่เหลืออยู่จะไม่หายไป"),
 ]
 
+# โปสเตอร์คอร์สบนหน้าแรก (หมวด slug, ภาพ, ชื่อ) — กดแล้วไปหน้าคอร์สในหมวดนั้น
+COURSE_POSTERS = [
+    ("tgat", "img/home/course-tgat.jpg", "ตะลุยโจทย์ TGAT 5 พ.ศ."),
+    ("a-level", "img/home/course-alevel.jpg", "ตะลุยโจทย์ A-Level 6 พ.ศ."),
+]
 
-def _calendar_demo():
-    """ตัวอย่างปฏิทินความเข้มข้นบนหน้าแรก (ภาพประกอบ ไม่ใช่ข้อมูลจริง)"""
-    pattern = "l1 l2 - l3 l2 - l1 l3 l3 l2 - l1 l2 l3 - l2 l3 l1 - - l2 l3 l3 l2 l1 - l3 l2 l1 l2 l3".split()
-    return ["" if p == "-" else p for p in pattern][:28]
 
-
-# รูปประกอบของแต่ละหมวดบนหน้าแรก (Unsplash License)
-SUBJECT_IMAGES = {"tgat": "img/covers/tgat.jpg", "a-level": "img/covers/a-level.jpg"}
+def _course_posters():
+    """ถ้าหมวดมีคอร์สเดียว ลิงก์ตรงไปหน้าคอร์ส ไม่งั้นไปหน้ารายการคอร์สของหมวด"""
+    by_cat = {}
+    for c in search_published_courses().filter(category__slug__in=[slug for slug, _, _ in COURSE_POSTERS]):
+        by_cat.setdefault(c.category.slug, []).append(c)
+    posters = []
+    for slug, image, title in COURSE_POSTERS:
+        courses = by_cat.get(slug, [])
+        if len(courses) == 1:
+            url = reverse("courses:detail", args=[courses[0].slug])
+        else:
+            url = reverse("courses:list") + f"?category={slug}"
+        posters.append({"image": image, "title": title, "url": url})
+    return posters
 
 
 def home(request):
-    categories = list_categories()
-    subjects = [{"cat": c, "image": SUBJECT_IMAGES.get(c.slug)} for c in categories]
-    active = {c.name.lower() for c in categories}
-    soon = [s for s in UPCOMING_SUBJECTS if s[0].lower() not in active]
-    return render(
-        request,
-        "core/home.html",
-        {
-            "categories": categories,
-            "subjects": subjects,
-            "soon": soon,
-            "featured_courses": featured_courses(limit=6),
-            "faqs": FAQS,
-            "cal_demo": _calendar_demo(),
-        },
-    )
+    return render(request, "core/home.html", {"posters": _course_posters(), "faqs": FAQS})
 
 
 def robots_txt(request):

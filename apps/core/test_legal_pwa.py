@@ -116,9 +116,10 @@ class FooterAndCookieBannerTests(TestCase):
     def test_brand_socials_are_shown_by_default(self):
         html = self.client.get(reverse("core:home")).content.decode()
         self.assertIn("https://www.tiktok.com/@letmehelp.eng", html)
-        self.assertIn("https://www.facebook.com/share/1CJVxPAg1N/", html)
+        self.assertIn("https://www.facebook.com/profile.php?id=61590751587536", html)
         self.assertIn("https://www.instagram.com/letmehelp.eng/", html)
-        self.assertIn("https://www.lemon8-app.com/@letmehelp.eng", html)
+        self.assertIn("https://s.lemon8-app.com/s/GgQwRbkmFy", html)
+        self.assertIn("https://www.youtube.com/@letmehelp.eng4848", html)
         self.assertIn("https://line.me/ti/p/uzCrWzXaGX", html)
         self.assertIn('aria-label="Lemon8"', html)
         self.assertNotIn("_t=", html)  # ไม่เอา tracking param จากลิงก์แชร์

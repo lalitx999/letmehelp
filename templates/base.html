@@ -114,7 +114,7 @@
     <div class="row gx-lg-5 gy-4 pb-4">
       <div class="col-lg-4">
         <a href="{% url 'core:home' %}" aria-label="{{ SITE_NAME }}"><img src="{% static 'img/logo.png' %}" alt="{{ SITE_NAME }}" height="48" class="mb-3"></a>
-        <p class="foot-about">คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT / A-Level สำหรับน้องมัธยม เรียนได้ทุกที่ ดูย้อนหลังได้ พร้อมเอกสารประกอบ</p>
+        <p class="foot-about">คอร์สเรียนออนไลน์ภาษาอังกฤษ TGAT / A-Level สำหรับน้องมัธยม</p>
         {% if SOCIAL_LINKS or LINE_CONTACT_URL or CONTACT_EMAIL %}
         <ul class="social-list" aria-label="ช่องทางติดตาม">
           {% if LINE_CONTACT_URL %}<li><a class="social" href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener noreferrer" aria-label="LINE" title="LINE">{% icon "line" "" %}</a></li>{% endif %}
@@ -125,12 +125,12 @@
         <button type="button" class="btn btn-outline-dark btn-sm mt-3" data-pwa-install hidden>{% icon "download" %} ติดตั้งแอปบนมือถือ</button>
         <p class="small text-secondary mt-2 mb-0" data-pwa-ios hidden>บน iPhone: แตะปุ่มแชร์ {% icon "box-arrow-up" %} แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”</p>
       </div>
-      <div class="col-6 col-md-3 col-lg-2"><h4>เรียน</h4><ul><li><a href="{% url 'courses:list' %}">คอร์สทั้งหมด</a></li><li><a href="{% url 'core:free_trial' %}">ทดลองเรียนฟรี</a></li><li><a href="{% url 'core:guide' %}">คู่มือการเรียน</a></li></ul></div>
+      <div class="col-6 col-md-3 col-lg-2"><h4>เรียน</h4><ul><li><a href="{% url 'courses:list' %}">คอร์สทั้งหมด</a></li><li><a href="{% url 'core:free_trial' %}">ทดลองเรียนฟรี</a></li></ul></div>
       <div class="col-6 col-md-3 col-lg-2"><h4>บัญชี</h4><ul>{% if user.is_authenticated %}<li><a href="{% url 'learning:my_courses' %}">Dashboard</a></li><li><a href="{% url 'learning:study' %}">สถิติการเรียน</a></li><li><a href="{% url 'accounts:profile' %}">ข้อมูลของฉัน</a></li>{% else %}<li><a href="{% url 'accounts:login' %}">เข้าสู่ระบบ</a></li><li><a href="{% url 'accounts:register' %}">สมัครสมาชิก</a></li>{% endif %}</ul></div>
       <div class="col-6 col-md-3 col-lg-2"><h4>ช่วยเหลือ</h4><ul>
-        {% if LINE_CONTACT_URL %}<li><a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener">ทักถามทาง LINE</a></li>{% endif %}
+        <li><a href="{% url 'core:guide' %}">คู่มือการเรียน</a></li>
+        {% if LINE_CONTACT_URL %}<li><a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener">สอบถามทาง LINE</a></li>{% endif %}
         {% if CONTACT_EMAIL %}<li><a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a></li>{% endif %}
-        <li><a href="{% url 'core:guide' %}">วิธีชำระเงินและเข้าเรียน</a></li>
       </ul></div>
       <div class="col-6 col-md-3 col-lg-2"><h4>กฎหมาย</h4><ul><li><a href="{% url 'core:privacy' %}">นโยบายความเป็นส่วนตัว</a></li><li><a href="{% url 'core:terms' %}">ข้อกำหนดการใช้งาน</a></li><li><a href="#" data-cookie-settings>ตั้งค่าคุกกี้</a></li></ul></div>
     </div>

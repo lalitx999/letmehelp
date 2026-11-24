@@ -14,3 +14,6 @@ db.sqlite3
 /*.pdf
 # ไฟล์ดาวน์โหลด Bootstrap ซ้ำกับ static/vendor/bootstrap
 /bootstrap-5.3.8-dist/
+
+# ไฟล์ต้นฉบับจากลูกค้า (ภาพ PNG ขนาดใหญ่, PDF คอร์ส) — ใช้เฉพาะในเครื่อง
+/data/

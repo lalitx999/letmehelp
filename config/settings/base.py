@@ -151,10 +151,10 @@ LINE_CONTACT_URL = env("LINE_CONTACT_URL", default="") or "https://line.me/ti/p/
 # โซเชียลมีเดียของแบรนด์ (ลิงก์สาธารณะ ไม่ใช่ความลับ) — ตั้งค่าตั้งต้นไว้ที่นี่ ให้แอดมินแก้ทับได้ที่หลังบ้าน → ตั้งค่าเว็บ
 # `or` = ถ้าใน .env มีคีย์แต่เว้นว่าง ก็ยังใช้ลิงก์ของแบรนด์ (ลิงก์ไม่มี tracking param)
 SOCIAL_TIKTOK = env("SOCIAL_TIKTOK", default="") or "https://www.tiktok.com/@letmehelp.eng"
-SOCIAL_FACEBOOK = env("SOCIAL_FACEBOOK", default="") or "https://www.facebook.com/share/1CJVxPAg1N/"
+SOCIAL_FACEBOOK = env("SOCIAL_FACEBOOK", default="") or "https://www.facebook.com/profile.php?id=61590751587536"
 SOCIAL_INSTAGRAM = env("SOCIAL_INSTAGRAM", default="") or "https://www.instagram.com/letmehelp.eng/"
-SOCIAL_LEMON8 = env("SOCIAL_LEMON8", default="") or "https://www.lemon8-app.com/@letmehelp.eng?region=th"
-SOCIAL_YOUTUBE = env("SOCIAL_YOUTUBE", default="")
+SOCIAL_LEMON8 = env("SOCIAL_LEMON8", default="") or "https://s.lemon8-app.com/s/GgQwRbkmFy"
+SOCIAL_YOUTUBE = env("SOCIAL_YOUTUBE", default="") or "https://www.youtube.com/@letmehelp.eng4848"
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 
