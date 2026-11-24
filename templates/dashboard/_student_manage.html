@@ -1,0 +1,69 @@
+{% load ui %}
+<form method="post" action="{{ action }}" data-modal-form class="crud-form student-manage">
+  {% csrf_token %}
+  <div class="modal-header border-0 pb-0">
+    <div class="d-flex align-items-center gap-3">
+      <span class="avatar" style="width:44px;height:44px;font-size:1.1rem">{{ s.full_name|initial }}</span>
+      <div><h2 class="modal-title h5 mb-0">{{ s.full_name }} {% if not s.is_active %}<span class="chip">ปิดบัญชี</span>{% endif %}</h2>
+        <div class="small text-secondary">สมัคร {{ s.date_joined|date:"j M Y" }} · ล็อกอินล่าสุด {{ s.last_login|date:"j M Y H:i"|default:"ยังไม่เคย" }}</div></div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+  </div>
+  <div class="modal-body">
+    {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+    <h3 class="sm-h">{% icon "person" %} ข้อมูลส่วนตัว</h3>
+    <div class="row g-2 mb-4">
+      {% for f in form %}
+      <div class="{% if f.name == 'admin_note' %}col-12{% else %}col-md-4{% endif %}">
+        <label class="form-label small fw-medium" for="{{ f.id_for_label }}">{{ f.label }}</label>
+        {{ f }}
+        {% if f.errors %}<div class="small text-danger mt-1">{{ f.errors|join:" " }}</div>{% elif f.help_text %}<div class="form-text">{{ f.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3 class="sm-h">{% icon "collection-play" %} สิทธิ์เรียน <span class="small text-secondary fw-normal">— เปิด/ปิด และตั้งวันหมดอายุได้ทุกคอร์สในตารางนี้</span></h3>
+    <div class="access-list">
+      {% for r in rows %}
+      {% with c=r.course e=r.enr %}
+      <div class="access-row {% if r.on %}is-on{% endif %}" data-access-row>
+        <div class="form-check form-switch m-0">
+          <input class="form-check-input" type="checkbox" role="switch" name="on-{{ c.pk }}" id="on-{{ c.pk }}" {% if r.on %}checked{% endif %} data-access-toggle>
+        </div>
+        <label class="access-course" for="on-{{ c.pk }}">
+          <b>{{ c.title }}</b>
+          <span class="small text-secondary">
+            {% if not e %}ยังไม่มีสิทธิ์{% elif e.status == 'cancelled' %}ยกเลิกแล้ว{% elif e.expires_at.year > 2100 %}ตลอดชีพ{% elif e.status == 'expired' %}หมดอายุแล้ว{% else %}กำลังเรียน{% endif %}
+            {% if e %} · {{ e.get_source_display }}{% endif %}{% if c.deleted_at %} · คอร์สถูกลบ{% endif %}
+          </span>
+        </label>
+        <div class="access-exp">
+          <input type="date" class="form-control form-control-sm" name="exp-{{ c.pk }}" value="{{ r.expires|date:'Y-m-d' }}" aria-label="วันหมดอายุ {{ c.title }}" data-access-date data-default-days="{{ c.access_days }}">
+          <div class="access-quick">
+            <button type="button" class="btn btn-light btn-sm" data-add-days="30">+30 วัน</button>
+            <button type="button" class="btn btn-light btn-sm" data-add-days="365">+1 ปี</button>
+            <button type="button" class="btn btn-light btn-sm" data-add-days="lifetime">ตลอดชีพ</button>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% empty %}<p class="text-secondary small mb-0">ยังไม่มีคอร์สในระบบ</p>{% endfor %}
+    </div>
+    <p class="form-text mt-2 mb-0">ปิดสวิตช์ = ยกเลิกสิทธิ์ (กู้คืนได้ ประวัติไม่หาย) · เปิดสวิตช์โดยไม่ใส่วัน = ได้อายุตามคอร์ส · ทุกการเปลี่ยนแปลงบันทึกในประวัติการแก้ไข</p>
+
+    {% if orders %}
+    <h3 class="sm-h mt-4">{% icon "wallet2" %} ออเดอร์ล่าสุด</h3>
+    <ul class="list-unstyled small mb-0">
+      {% for o in orders %}<li class="d-flex flex-wrap gap-2 align-items-center py-1"><span class="text-secondary">{{ o.created_at|date:"j M y" }}</span> {{ o.course.title }} · ฿{{ o.amount|floatformat:"-2" }} {% include "dashboard/_order_status.html" with o=o %}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  <div class="modal-footer border-0 pt-0 justify-content-between">
+    <span class="d-flex flex-wrap gap-2">
+      <a href="{% url 'dashboard:student_detail' s.pk %}" class="btn btn-light btn-sm">{% icon "graph-up" %} สถิติการเรียน</a>
+      <button type="button" class="btn btn-light btn-sm" data-modal-url="{% url 'dashboard:user_password' s.pk %}">{% icon "key" %} รีเซ็ตรหัสผ่าน</button>
+    </span>
+    <span class="d-flex gap-2"><button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-dark">บันทึก</button></span>
+  </div>
+</form>

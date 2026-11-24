@@ -53,7 +53,7 @@ class AccessMatrixTests(DashCase):
             reverse("dashboard:user_password", args=[self.student.pk]),
             reverse("dashboard:enrollment_list"), reverse("dashboard:enrollment_grant"), reverse("dashboard:enrollment_extend", args=[enr.pk]),
             reverse("dashboard:order_list"), reverse("dashboard:order_add"), reverse("dashboard:order_detail", args=[order.pk]),
-            reverse("dashboard:slip_list"), reverse("dashboard:exports"),
+            reverse("dashboard:exports"),
             reverse("dashboard:admin_list"), reverse("dashboard:admin_add"), reverse("dashboard:site_settings"),
             reverse("dashboard:audit_list"), reverse("dashboard:trash"),
         ]
@@ -68,6 +68,11 @@ class AccessMatrixTests(DashCase):
         self.client.force_login(self.admin)
         for url in urls:
             self.assertEqual(self.client.get(url).status_code, 200, f"admin {url}")
+
+    def test_old_slip_page_redirects_to_payment_review_tab(self):
+        self.client.force_login(self.admin)
+        r = self.client.get(reverse("dashboard:slip_list"))
+        self.assertRedirects(r, reverse("dashboard:order_list") + "?tab=review")
 
     def test_post_actions_blocked_for_student(self):
         self.client.force_login(self.student)
@@ -533,3 +538,128 @@ class CodingRulesTests(DashCase):
         finally:
             clear_url_caches(); importlib.reload(config.urls)
         self.assertTrue(any(str(p.pattern) == "django-admin/" for p in config.urls.urlpatterns))  # ตอนพัฒนาเปิดไว้
+
+
+class PaymentQueueTests(DashCase):
+    """หน้า "การชำระเงิน": ออเดอร์ + สลิปล่าสุดในแถวเดียว แท็บตามงาน แผงรายละเอียด"""
+
+    def _review_order(self, amount=500):
+        order = Order.objects.create(user=self.student, course=self.course, amount=amount, status=Order.Status.REVIEWING)
+        slip = PaymentSlip.objects.create(order=order, image=SimpleUploadedFile("s.png", PNG, "image/png"),
+                                          status=PaymentSlip.Status.MANUAL_REVIEW, reason="ยอดไม่ตรง", verified_amount=Decimal("499"))
+        return order, slip
+
+    def test_review_tab_is_default_and_shows_slip_with_inline_actions(self):
+        order, slip = self._review_order()
+        Order.objects.create(user=self.student, course=self.course, amount=500, status=Order.Status.PAID)
+        self.client.force_login(self.admin)
+        r = self.client.get(reverse("dashboard:order_list"))
+        self.assertEqual(r.context["tab"], "review")
+        self.assertEqual(len(r.context["ls"].page.object_list), 1)
+        self.assertContains(r, reverse("payments:slip_image", args=[slip.pk]))
+        self.assertContains(r, reverse("dashboard:slip_decide", args=[slip.pk]))
+        self.assertContains(r, "สลิป ฿499")
+        self.assertEqual(dict((k, n) for k, _, n in r.context["tabs"])["paid"], 1)
+
+    def test_without_pending_work_defaults_to_all(self):
+        Order.objects.create(user=self.student, course=self.course, amount=500, status=Order.Status.PAID)
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(reverse("dashboard:order_list")).context["tab"], "all")
+
+    def test_detail_opens_as_panel_for_fetch(self):
+        order, slip = self._review_order()
+        self.client.force_login(self.admin)
+        url = reverse("dashboard:order_detail", args=[order.pk])
+        r = self.client.get(url, HTTP_X_REQUESTED_WITH="fetch")
+        self.assertTemplateUsed(r, "dashboard/_payment_panel.html")
+        self.assertNotContains(r, "<html")
+        self.assertTemplateUsed(self.client.get(url), "dashboard/order_detail.html")
+
+
+class StudentManageTests(DashCase):
+    """หน้าต่างนักเรียน: ข้อมูลส่วนตัว + สิทธิ์ทุกคอร์ส บันทึกครั้งเดียว"""
+
+    def setUp(self):
+        super().setUp()
+        self.other = Course.objects.create(category=self.course.category, title="Other", slug="other", price=1, access_days=30, is_published=True)
+        self.url = reverse("dashboard:student_manage", args=[self.student.pk])
+        self.client.force_login(self.admin)
+
+    def _post(self, **extra):
+        data = {"full_name": "Stu", "phone": "0811111111", "email": "s@x.com", "admin_note": ""}
+        data.update(extra)
+        return self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="fetch")
+
+    def test_lists_every_course(self):
+        r = self.client.get(self.url, HTTP_X_REQUESTED_WITH="fetch")
+        self.assertContains(r, f'name="on-{self.course.pk}"')
+        self.assertContains(r, f'name="on-{self.other.pk}"')
+
+    def test_grant_set_date_and_revoke_in_one_save(self):
+        enrollment_service.grant_or_extend(user=self.student, course=self.course)
+        r = self._post(**{f"on-{self.other.pk}": "on", f"exp-{self.other.pk}": "2030-01-31", "full_name": "Stu New"})
+        self.assertEqual(r.json()["ok"], True, r.content[:300])
+        self.assertIn("2 คอร์ส", r.json()["message"])
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.full_name, "Stu New")
+        self.assertEqual(Enrollment.objects.get(user=self.student, course=self.course).status, "cancelled")
+        e = Enrollment.objects.get(user=self.student, course=self.other)
+        self.assertEqual((e.status, timezone.localtime(e.expires_at).date().isoformat(), e.source), ("active", "2030-01-31", "manual"))
+        self.assertEqual(AuditLog.objects.filter(action__in=["grant", "revoke"]).count(), 2)
+
+    def test_turning_on_without_date_uses_course_length_and_unchanged_rows_are_untouched(self):
+        enrollment_service.grant_or_extend(user=self.student, course=self.course)
+        exp = timezone.localtime(Enrollment.objects.get(course=self.course).expires_at).date().isoformat()
+        r = self._post(**{f"on-{self.course.pk}": "on", f"exp-{self.course.pk}": exp, f"on-{self.other.pk}": "on"})
+        self.assertEqual(r.json()["message"], "บันทึกแล้ว · เปลี่ยนสิทธิ์เรียน 1 คอร์ส")
+        e = Enrollment.objects.get(course=self.other)
+        self.assertEqual((e.expires_at - timezone.now()).days, 29)
+
+    def test_invalid_profile_shows_errors_and_changes_nothing(self):
+        User.objects.create_user("taken@x.com", "pw-12345678", full_name="T", phone="0822222222")
+        r = self._post(email="taken@x.com", **{f"on-{self.other.pk}": "on"})
+        self.assertEqual(r.status_code, 422)
+        self.assertFalse(Enrollment.objects.filter(course=self.other).exists())
+
+
+class CourseContentDragTests(DashCase):
+    """เนื้อหาคอร์ส: ลากวางจัดลำดับ, เรียงตามเลขในชื่อ, แนบ PDF ในฟอร์มคลิป"""
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.admin)
+        self.sec = self.lesson.section
+        self.l10 = Lesson.objects.create(section=self.sec, title="คลิปที่ 10", youtube_video_id="M7lc1UVf-VE", order=2)
+        self.l2 = Lesson.objects.create(section=self.sec, title="คลิปที่ 2", youtube_video_id="M7lc1UVf-VE", order=3)
+        self.url = reverse("dashboard:course_reorder", args=[self.course.pk])
+
+    def _order(self):
+        return list(Lesson.objects.filter(section=self.sec).order_by("order").values_list("pk", flat=True))
+
+    def test_drag_reorder_lessons(self):
+        ids = [self.l2.pk, self.lesson.pk, self.l10.pk]
+        r = self.client.post(self.url, {"kind": "lessons", "parent": self.sec.pk, "ids": ids}, content_type="application/json")
+        self.assertEqual(r.json()["ok"], True)
+        self.assertEqual(self._order(), ids)
+
+    def test_reorder_rejects_ids_from_elsewhere(self):
+        r = self.client.post(self.url, {"kind": "lessons", "parent": self.sec.pk, "ids": [self.l2.pk, self.lesson.pk]}, content_type="application/json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_reorder_sections(self):
+        s2 = Section.objects.create(course=self.course, title="S2", order=2)
+        r = self.client.post(self.url, {"kind": "sections", "ids": [s2.pk, self.sec.pk]}, content_type="application/json")
+        self.assertEqual(r.json()["ok"], True)
+        self.assertEqual(list(Section.objects.filter(course=self.course).order_by("order").values_list("pk", flat=True)), [s2.pk, self.sec.pk])
+
+    def test_sort_by_number_in_title(self):
+        self.client.post(reverse("dashboard:section_sort", args=[self.sec.pk]))
+        self.assertEqual(self._order(), [self.l2.pk, self.l10.pk, self.lesson.pk])  # "L" ไม่มีเลข → ท้ายสุด
+
+    def test_lesson_form_can_attach_pdf(self):
+        pdf = SimpleUploadedFile("worksheet.pdf", b"%PDF-1.4 test", "application/pdf")
+        r = self.client.post(reverse("dashboard:lesson_edit", args=[self.l2.pk]), {
+            "title": "คลิปที่ 2", "youtube_url": "M7lc1UVf-VE", "duration_seconds": 0, "order": 3, "pdf_file": pdf, "pdf_title": "แบบฝึกหัด",
+        }, HTTP_X_REQUESTED_WITH="fetch")
+        self.assertEqual(r.json()["ok"], True, r.content[:300])
+        self.assertEqual(list(self.l2.attachments.values_list("title", flat=True)), ["แบบฝึกหัด"])

@@ -14,12 +14,47 @@
     if (flash) { sessionStorage.removeItem("lmh-flash"); const f = JSON.parse(flash); LMH.toast(f.message, f.kind); }
   } catch (e) { /* ไม่เป็นไร */ }
 
-  const done = (message, kind) => {
-    try { sessionStorage.setItem("lmh-flash", JSON.stringify({ message, kind: kind || "ok" })); } catch (e) { /* ไม่เป็นไร */ }
-    location.reload();
+  // ทำรายการเสร็จ: ดึงหน้าเดิมมาใหม่แล้วเปลี่ยนเฉพาะเนื้อหา (ไม่รีโหลดทั้งหน้า ตำแหน่งที่เลื่อนอยู่ไม่หาย)
+  // เมนูข้าง (ตัวเลขสลิปรอตรวจ) อัปเดตด้วย และถ้าแผงรายละเอียดเปิดอยู่ก็โหลดแผงใหม่
+  const SWAP = ["main.adm-content", ".adm-side .adm-nav", "#dashDrawer .adm-nav"];
+  async function refresh() {
+    const res = await fetch(location.href, { credentials: "same-origin" });
+    if (!res.ok || res.redirected) throw new Error("reload");
+    const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+    SWAP.forEach((sel) => { const now = document.querySelector(sel), next = doc.querySelector(sel); if (now && next) now.innerHTML = next.innerHTML; });
+    document.dispatchEvent(new CustomEvent("dash:refreshed"));
+  }
+  const done = async (message, kind) => {
+    try {
+      await refresh();
+      if (panelEl.classList.contains("show") && panelUrl) await loadPanel(panelUrl);
+      LMH.toast(message || "ทำรายการแล้ว", kind || "ok");
+    } catch (e) {
+      try { sessionStorage.setItem("lmh-flash", JSON.stringify({ message, kind: kind || "ok" })); } catch (err) { /* ไม่เป็นไร */ }
+      location.reload();
+    }
   };
 
-  async function openModal(url) {
+  // แผงรายละเอียดด้านขวา: <button data-panel-url="...">
+  const panelEl = document.getElementById("dashPanel");
+  const panel = new bootstrap.Offcanvas(panelEl);
+  const panelBody = panelEl.querySelector(".dash-panel-body");
+  let panelUrl = "";
+  async function loadPanel(url) {
+    panelUrl = url;
+    const res = await fetch(url, { headers: FETCH, credentials: "same-origin" });
+    panelBody.innerHTML = await res.text();
+  }
+  async function openPanel(url) {
+    panelBody.innerHTML = '<div class="p-5 text-center"><span class="spinner-border" aria-hidden="true"></span></div>';
+    panel.show();
+    try { await loadPanel(url); } catch (e) { panel.hide(); LMH.toast("โหลดข้อมูลไม่สำเร็จ", "bad"); }
+  }
+
+  async function openModal(url, size) {
+    const dialog = crudEl.querySelector(".modal-dialog");
+    dialog.classList.toggle("modal-lg", size === "lg");
+    dialog.classList.toggle("modal-xl", size === "xl");
     content.innerHTML = '<div class="p-5 text-center"><span class="spinner-border" aria-hidden="true"></span></div>';
     crud.show();
     try {
@@ -48,7 +83,10 @@
 
   document.addEventListener("click", (e) => {
     const m = e.target.closest("[data-modal-url]");
-    if (m) { e.preventDefault(); return openModal(m.dataset.modalUrl); }
+    if (m) { e.preventDefault(); if (m.closest("#dashPanel")) panel.hide(); return openModal(m.dataset.modalUrl, m.dataset.modalSize); }
+
+    const pn = e.target.closest("[data-panel-url]");
+    if (pn) { e.preventDefault(); return openPanel(pn.dataset.panelUrl); }
 
     const p = e.target.closest("[data-post-url]");
     if (p) {
@@ -100,6 +138,45 @@
     if (e.target.matches("[data-bulk-all], [data-bulk-id]")) sync();
   });
 
+  // ปฏิเสธสลิป: ถามเหตุผล (นักเรียนจะเห็นข้อความนี้) แล้วส่งไป server
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest(".js-reject");
+    if (!b) return;
+    const reason = prompt("เหตุผลที่ปฏิเสธ (นักเรียนจะเห็นข้อความนี้)", "สลิปไม่ถูกต้อง");
+    if (reason === null) return;
+    b.disabled = true;
+    const res = await LMH.post(b.dataset.url, { action: "reject", reason });
+    if (res.ok && res.data.ok !== false) return done(res.data.message || "ปฏิเสธสลิปแล้ว");
+    b.disabled = false;
+    LMH.toast((res.data && res.data.error) || "ทำรายการไม่สำเร็จ", "bad");
+  });
+
+  // หน้าต่างนักเรียน: ปุ่มลัด +30 วัน / +1 ปี / ตลอดชีพ และสวิตช์เปิดสิทธิ์
+  const ymd = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  function setRowOn(row, on) {
+    row.classList.toggle("is-on", on);
+    const t = row.querySelector("[data-access-toggle]"), date = row.querySelector("[data-access-date]");
+    t.checked = on;
+    if (on && !date.value) date.value = ymd(addDays(new Date(), parseInt(date.dataset.defaultDays, 10) || 365));
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-add-days]");
+    if (!b) return;
+    const row = b.closest("[data-access-row]"), date = row.querySelector("[data-access-date]");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const cur = date.value ? new Date(date.value + "T00:00") : null;
+    const base = cur && cur > today ? cur : today;
+    date.value = ymd(b.dataset.addDays === "lifetime" ? addDays(today, 36500) : addDays(base, parseInt(b.dataset.addDays, 10)));
+    setRowOn(row, true);
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target.matches("[data-access-toggle]")) setRowOn(e.target.closest("[data-access-row]"), e.target.checked);
+  });
+
+  // ให้สคริปต์ของแต่ละหน้าใช้: แจ้งผล+อัปเดตหน้า, เปิด modal/แผง
+  window.LMHDash = { done, refresh, openModal, openPanel, confirm: confirmThen };
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
       const s = document.querySelector("[data-search]");
@@ -110,8 +187,9 @@
   // ปุ่มค้นหาในแถบบน: โฟกัสช่องค้นหาของหน้า (ซ่อนปุ่มถ้าหน้านั้นไม่มีช่องค้นหา)
   const searchBtn = document.querySelector("[data-focus-search]");
   if (searchBtn) {
-    const s = document.querySelector("[data-search]");
-    if (!s) searchBtn.hidden = true;
-    else searchBtn.addEventListener("click", () => { s.scrollIntoView({ block: "center", behavior: "smooth" }); s.focus({ preventScroll: true }); });
+    const syncSearch = () => { searchBtn.hidden = !document.querySelector("[data-search]"); };
+    syncSearch();
+    document.addEventListener("dash:refreshed", syncSearch);
+    searchBtn.addEventListener("click", () => { const s = document.querySelector("[data-search]"); if (s) { s.scrollIntoView({ block: "center", behavior: "smooth" }); s.focus({ preventScroll: true }); } });
   }
 })();

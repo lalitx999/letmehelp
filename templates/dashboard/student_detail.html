@@ -10,9 +10,8 @@
       <div class="small text-secondary">{{ s.email }} · {{ s.phone }} · สมัคร {{ s.date_joined|date:"j M Y" }} · ล็อกอินล่าสุด {{ s.last_login|date:"j M Y H:i"|default:"ยังไม่เคย" }}</div></div>
   </div>
   <div class="d-flex flex-wrap gap-2">
-    <a href="{% url 'dashboard:student_edit' s.pk %}" class="btn btn-outline-dark btn-sm">{% icon "pencil-square" %} แก้ไข</a>
+    <button class="btn btn-dark btn-sm" data-modal-url="{% url 'dashboard:student_manage' s.pk %}" data-modal-size="lg">{% icon "pencil-square" %} จัดการข้อมูลและสิทธิ์เรียน</button>
     <button class="btn btn-outline-dark btn-sm" data-modal-url="{% url 'dashboard:user_password' s.pk %}">{% icon "key" %} รีเซ็ตรหัสผ่าน</button>
-    <button class="btn btn-dark btn-sm" data-modal-url="{% url 'dashboard:enrollment_grant' %}?email={{ s.email|urlencode }}">{% icon "plus-lg" %} มอบสิทธิ์เรียน</button>
     <button class="btn btn-outline-secondary btn-sm" data-post-url="{% url 'dashboard:student_toggle' s.pk %}" {% if s.is_active %}data-confirm="ปิดบัญชีของ {{ s.full_name }}? ข้อมูลยังอยู่ แต่ล็อกอินไม่ได้" data-danger{% endif %}>{% if s.is_active %}{% icon "person-x" %} ปิดบัญชี{% else %}{% icon "person-check" %} เปิดบัญชี{% endif %}</button>
   </div>
 </div>

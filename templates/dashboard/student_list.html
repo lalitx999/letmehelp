@@ -19,8 +19,8 @@
         <td data-label="สมัคร" class="small">{{ u.date_joined|date:"j M Y" }}</td>
         <td data-label="ล็อกอิน" class="small">{{ u.last_login|date:"j M y H:i"|default:"-" }}</td>
         <td class="row-actions-cell text-end"><span class="row-actions">
-          <a class="btn btn-sm btn-dark" href="{% url 'dashboard:student_detail' u.pk %}">ดู</a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboard:student_edit' u.pk %}" aria-label="แก้ไข">{% icon "pencil-square" %}</a>
+          <button class="btn btn-sm btn-dark" data-modal-url="{% url 'dashboard:student_manage' u.pk %}" data-modal-size="lg">{% icon "pencil-square" %} จัดการ</button>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboard:student_detail' u.pk %}" title="สถิติการเรียน" aria-label="สถิติการเรียน">{% icon "graph-up" %}</a>
           <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:student_toggle' u.pk %}" {% if u.is_active %}data-confirm="ปิดบัญชีของ {{ u.full_name }}? ข้อมูลทั้งหมดยังอยู่ แต่ล็อกอินไม่ได้ (เปิดคืนได้)" data-danger{% endif %} title="{% if u.is_active %}ปิดบัญชี{% else %}เปิดบัญชี{% endif %}">{% if u.is_active %}{% icon "person-x" %}{% else %}{% icon "person-check" %}{% endif %}</button>
         </span></td>
       </tr>

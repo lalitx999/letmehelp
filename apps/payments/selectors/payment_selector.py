@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, DecimalField, Sum
+from django.db.models import Count, DecimalField, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 
@@ -92,3 +92,30 @@ def get_order_detail(order_id):
         Order.objects.select_related("user", "course", "created_by").prefetch_related("slips__reviewed_by").filter(pk=order_id).first()
     )
     return order
+
+
+# ---- หน้า "การชำระเงิน" ของหลังบ้าน: 1 แถว = 1 ออเดอร์ พร้อมสลิปล่าสุด --------------------------------
+# แท็บตามงานที่ต้องทำ (key, ชื่อ, เงื่อนไข)
+PAYMENT_TABS = [
+    ("review", "รอตรวจสลิป", Q(status=Order.Status.REVIEWING)),
+    ("pending", "รอโอนเงิน", Q(status=Order.Status.PENDING)),
+    ("paid", "ชำระแล้ว", Q(status=Order.Status.PAID)),
+    ("rejected", "สลิปไม่ผ่าน", Q(status=Order.Status.REJECTED)),
+    ("closed", "ยกเลิก/คืนเงิน", Q(status__in=[Order.Status.CANCELLED, Order.Status.REFUNDED])),
+    ("all", "ทั้งหมด", Q()),
+]
+
+
+def payment_tab_counts():
+    return Order.objects.aggregate(**{key: Count("id", filter=cond) for key, _, cond in PAYMENT_TABS})
+
+
+def payments_qs(tab: str):
+    cond = next((c for k, _, c in PAYMENT_TABS if k == tab), Q())
+    latest = PaymentSlip.objects.filter(order=OuterRef("pk")).order_by("-created_at")
+    return orders_qs().filter(cond).annotate(
+        slip_id=Subquery(latest.values("id")[:1]),
+        slip_status=Subquery(latest.values("status")[:1]),
+        slip_reason=Subquery(latest.values("reason")[:1]),
+        slip_amount=Subquery(latest.values("verified_amount")[:1]),
+    )

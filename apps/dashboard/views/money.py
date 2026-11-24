@@ -1,13 +1,13 @@
-"""หลังบ้าน: ออเดอร์ + ตรวจสลิป"""
+"""หลังบ้าน: การชำระเงิน (ออเดอร์ + สลิปรวมหน้าเดียว แบบคิวงาน)"""
 import json
 
 from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 
 from apps.core.decorators import staff_required
-from apps.dashboard.crud import json_action, modal_form
+from apps.dashboard.crud import is_fetch, json_action, modal_form
 from apps.dashboard.selectors.list_params import paginate
 from apps.payments.forms import ManualOrderForm, RefundForm
 from apps.payments.models import Order, PaymentSlip
@@ -28,16 +28,21 @@ def _date_to(qs, v):
 
 @staff_required
 def order_list(request):
+    """หน้า "การชำระเงิน": แท็บตามงาน (รอตรวจสลิปขึ้นก่อน) อนุมัติ/ปฏิเสธในแถวได้ กดดูรายละเอียดเปิดแผงด้านข้าง"""
+    counts = sel.payment_tab_counts()
+    tab = request.GET.get("tab") or ("review" if counts["review"] else "all")
+    if tab not in counts:
+        tab = "all"
     ls = paginate(
-        request, sel.orders_qs(), search=("user__full_name", "user__email", "user__phone", "course__title"),
-        filters={"status": "status", "source": "source", "from": _date_from, "to": _date_to},
+        request, sel.payments_qs(tab), search=("user__full_name", "user__email", "user__phone", "course__title"),
+        filters={"source": "source", "from": _date_from, "to": _date_to},
         sorts={"created": ("created_at",), "amount": ("amount",), "student": ("user__full_name",)},
         default_sort="-created", per_page=25,
     )
-    counts = sel.order_status_counts()
     return render(request, "dashboard/order_list.html", {
-        "ls": ls, "counts": counts,
-        "filters_ui": [("status", "สถานะ", Order.Status.choices), ("source", "ที่มา", Order.Source.choices)],
+        "ls": ls, "tab": tab,
+        "tabs": [(k, label, counts[k]) for k, label, _ in sel.PAYMENT_TABS],
+        "filters_ui": [("source", "ที่มา", Order.Source.choices)],
     })
 
 
@@ -46,7 +51,10 @@ def order_detail(request, order_id):
     order = sel.get_order_detail(order_id)
     if order is None:
         raise Http404
-    return render(request, "dashboard/order_detail.html", {"o": order, "slips": list(order.slips.all())})
+    ctx = {"o": order, "slips": list(order.slips.all())}
+    if is_fetch(request):  # เปิดเป็นแผงด้านข้างจากหน้ารายการ
+        return render(request, "dashboard/_payment_panel.html", ctx)
+    return render(request, "dashboard/order_detail.html", ctx)
 
 
 @staff_required
@@ -90,11 +98,8 @@ def order_refund(request, order_id):
 # ---------- สลิป ----------
 @staff_required
 def slip_list(request):
-    status = request.GET.get("status") or PaymentSlip.Status.MANUAL_REVIEW
-    valid = {s for s, _ in PaymentSlip.Status.choices}
-    qs = sel.slips_for_review(status if status in valid else None)
-    ls = paginate(request, qs, search=("order__user__full_name", "order__user__email", "order__course__title", "trans_ref"), per_page=20)
-    return render(request, "dashboard/slip_list.html", {"ls": ls, "status": status, "statuses": PaymentSlip.Status.choices})
+    """ลิงก์เดิม (เมนู/อีเมลแจ้งแอดมิน) → หน้าการชำระเงิน แท็บรอตรวจ"""
+    return redirect(reverse("dashboard:order_list") + "?tab=review")
 
 
 @staff_required

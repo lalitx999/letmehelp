@@ -57,3 +57,17 @@ def enrollment_tab_filter(qs, value):
     if value == "cancelled":
         return qs.filter(status="cancelled")
     return qs
+
+
+def access_rows(user):
+    """แถวตารางสิทธิ์ในหน้าต่างนักเรียน: ทุกคอร์สที่ยังไม่ถูกลบ + คอร์สที่ถูกลบแต่นักเรียนคนนี้มีสิทธิ์อยู่"""
+    from apps.courses.models import Course
+
+    enrolled = {e.course_id: e for e in Enrollment.objects.filter(user=user)}
+    courses = Course.all_objects.filter(Q(deleted_at__isnull=True) | Q(pk__in=enrolled.keys())).only("id", "title", "access_days", "deleted_at").order_by("title")
+    rows = []
+    for c in courses:
+        e = enrolled.get(c.pk)
+        on = bool(e and e.status != Enrollment.Status.CANCELLED)
+        rows.append({"course": c, "enr": e, "on": on, "expires": timezone.localtime(e.expires_at).date() if e else None})
+    return rows

@@ -1,5 +1,5 @@
 {% extends "dashboard/base.html" %}
-{% load ui %}
+{% load static ui %}
 {% block dash_title %}เนื้อหา — {{ course.title }}{% endblock %}
 {% block dash_content %}
 <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
@@ -47,30 +47,30 @@
   <h2 class="h5 mb-0">บทและคลิป</h2>
   <button class="btn btn-sm btn-dark" data-modal-url="{% url 'dashboard:section_add' course.pk %}">{% icon "plus-lg" %} เพิ่มบท</button>
 </div>
+<p class="small text-secondary mb-2">{% icon "info-circle" %} ลากที่ปุ่ม <span class="drag-handle is-demo" aria-hidden="true">{% icon "three-dots-vertical" %}{% icon "three-dots-vertical" %}</span> เพื่อจัดลำดับบทและคลิป ระบบบันทึกให้ทันที</p>
+<div data-sort="sections" data-sort-url="{% url 'dashboard:course_reorder' course.pk %}">
 {% for section in course.sections.all %}
-<div class="dash-card mb-3">
+<div class="dash-card mb-3" data-sort-item data-id="{{ section.pk }}">
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-    <h3 class="h6 mb-0 d-flex align-items-center gap-2">{% icon "folder2-open" %} <span class="mono text-secondary">( {{ forloop.counter }} )</span> {{ section.title }}</h3>
+    <h3 class="h6 mb-0 d-flex align-items-center gap-2"><button type="button" class="drag-handle" aria-label="ลากเพื่อย้ายบท {{ section.title }}">{% icon "three-dots-vertical" %}{% icon "three-dots-vertical" %}</button>{% icon "folder2-open" %} <span class="mono text-secondary">( {{ forloop.counter }} )</span> {{ section.title }}</h3>
     <span class="row-actions">
       <button class="btn btn-sm btn-dark" data-modal-url="{% url 'dashboard:lesson_add' section.pk %}">{% icon "plus-lg" %} เพิ่มคลิป</button>
-      <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:section_move' section.pk 'up' %}" aria-label="เลื่อนขึ้น" {% if forloop.first %}disabled{% endif %}>{% icon "arrow-up" %}</button>
-      <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:section_move' section.pk 'down' %}" aria-label="เลื่อนลง" {% if forloop.last %}disabled{% endif %}>{% icon "arrow-down" %}</button>
+      <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:section_sort' section.pk %}" title="เรียงคลิปตามเลขในชื่อ เช่น คลิปที่ 1, 2, … 10">{% icon "list-check" %} เรียงตามเลข</button>
       <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:section_edit' section.pk %}" aria-label="แก้ไขบท">{% icon "pencil-square" %}</button>
       <button class="btn btn-sm btn-outline-danger" data-post-url="{% url 'dashboard:section_delete' section.pk %}" data-confirm="ย้ายบท “{{ section.title }}” พร้อมคลิปทั้งหมดในบทไปถังขยะ?" data-danger aria-label="ลบบท">{% icon "trash3" %}</button>
     </span>
   </div>
-  <ul class="list-group list-group-flush">
+  <ul class="list-group list-group-flush" data-sort="lessons" data-parent="{{ section.pk }}">
     {% for l in section.lessons.all %}
-    <li class="list-group-item px-0">
+    <li class="list-group-item px-0" data-sort-item data-id="{{ l.pk }}">
       <div class="d-flex flex-wrap justify-content-between gap-2">
         <div class="d-flex align-items-center gap-2 min-w-0">
+          <button type="button" class="drag-handle" aria-label="ลากเพื่อย้ายคลิป {{ l.title }}">{% icon "three-dots-vertical" %}{% icon "three-dots-vertical" %}</button>
           <span class="icon-chip sm is-red">{% icon "play-fill" %}</span>
           <div class="min-w-0"><b>{{ l.title }}</b>
             <div class="small text-secondary">{{ l.youtube_video_id }}{% if l.duration_seconds %} · {{ l.duration_seconds|hms }}{% endif %} {% if l.is_free_preview %}<span class="chip is-green ms-1">ดูฟรี</span>{% endif %}</div></div>
         </div>
         <span class="row-actions">
-          <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:lesson_move' l.pk 'up' %}" aria-label="เลื่อนขึ้น" {% if forloop.first %}disabled{% endif %}>{% icon "arrow-up" %}</button>
-          <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:lesson_move' l.pk 'down' %}" aria-label="เลื่อนลง" {% if forloop.last %}disabled{% endif %}>{% icon "arrow-down" %}</button>
           <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:lesson_edit' l.pk %}" aria-label="แก้ไข">{% icon "pencil-square" %}</button>
           <div class="dropdown"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-label="เพิ่มเติม">{% icon "three-dots" %}</button>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -92,4 +92,6 @@
 {% empty %}
 <div class="dash-card">{% include "dashboard/_empty.html" with text="ยังไม่มีบทเรียน" hint="กด เพิ่มบท เพื่อเริ่มสร้างเนื้อหา" icon="folder2-open" %}</div>
 {% endfor %}
+</div>
 {% endblock %}
+{% block extra_js %}<script src="{% static 'js/dash-sort.js' %}"></script>{% endblock %}

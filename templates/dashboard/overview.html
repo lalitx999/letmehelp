@@ -15,7 +15,7 @@
 
 <div class="bento">
   <!-- ยอดขาย + กราฟ (การ์ดใหญ่สีเข้ม) -->
-  <a class="b-card b-hero" href="{% url 'dashboard:order_list' %}?status=paid">
+  <a class="b-card b-hero" href="{% url 'dashboard:order_list' %}?tab=paid">
     <div class="d-flex justify-content-between align-items-start gap-3">
       <div>
         <div class="b-label">ยอดขาย {{ s.days }} วันล่าสุด</div>
@@ -36,8 +36,8 @@
     <div class="b-head"><h2>{% icon "lightning-charge" %} ต้องทำตอนนี้</h2></div>
     {% if s.pending_slips or s.expiring_7d or s.reviewing_orders %}
     <div class="b-list">
-      {% if s.pending_slips %}<a href="{% url 'dashboard:slip_list' %}" class="b-row"><span class="b-dot is-red"></span><span class="flex-grow-1">สลิปรอแอดมินตรวจ</span><b>{{ s.pending_slips }}</b>{% icon "chevron-right" %}</a>{% endif %}
-      {% if s.reviewing_orders %}<a href="{% url 'dashboard:order_list' %}?status=reviewing" class="b-row"><span class="b-dot is-orange"></span><span class="flex-grow-1">ออเดอร์กำลังตรวจสลิป</span><b>{{ s.reviewing_orders }}</b>{% icon "chevron-right" %}</a>{% endif %}
+      {% if s.pending_slips %}<a href="{% url 'dashboard:order_list' %}?tab=review" class="b-row"><span class="b-dot is-red"></span><span class="flex-grow-1">สลิปรอแอดมินตรวจ</span><b>{{ s.pending_slips }}</b>{% icon "chevron-right" %}</a>{% endif %}
+      {% if s.reviewing_orders %}<a href="{% url 'dashboard:order_list' %}?tab=review" class="b-row"><span class="b-dot is-orange"></span><span class="flex-grow-1">ออเดอร์กำลังตรวจสลิป</span><b>{{ s.reviewing_orders }}</b>{% icon "chevron-right" %}</a>{% endif %}
       {% if s.expiring_7d %}<a href="{% url 'dashboard:enrollment_list' %}" class="b-row"><span class="b-dot is-blue"></span><span class="flex-grow-1">สิทธิ์หมดอายุใน 7 วัน</span><b>{{ s.expiring_7d }}</b>{% icon "chevron-right" %}</a>{% endif %}
     </div>
     {% else %}
@@ -48,7 +48,7 @@
       <div class="b-grid">
         <a href="{% url 'dashboard:student_list' %}">{% icon "people" %}<span>นักเรียน</span></a>
         <a href="{% url 'dashboard:enrollment_list' %}">{% icon "clock-history" %}<span>สิทธิ์เรียน</span></a>
-        <a href="{% url 'dashboard:order_list' %}">{% icon "wallet2" %}<span>ออเดอร์</span></a>
+        <a href="{% url 'dashboard:order_list' %}">{% icon "wallet2" %}<span>การชำระเงิน</span></a>
         <a href="{% url 'dashboard:site_settings' %}">{% icon "gear" %}<span>ตั้งค่าเว็บ</span></a>
       </div>
     </div>

@@ -1,35 +1,55 @@
 {% extends "dashboard/base.html" %}
-{% load ui %}
-{% block dash_title %}ออเดอร์{% endblock %}
+{% load static ui %}
+{% block dash_title %}การชำระเงิน{% endblock %}
 {% block dash_content %}
-<div class="mb-3"><span class="lbl d-block mb-1">การเงิน</span><h1 class="h3 mb-0">ออเดอร์ <span class="text-secondary fs-6 fw-normal">({{ ls.total }})</span></h1></div>
+<div class="mb-3"><span class="lbl d-block mb-1">การเงิน</span><h1 class="h3 mb-0">การชำระเงิน</h1>
+  <div class="small text-secondary">ออเดอร์และสลิปรวมไว้ที่เดียว — สลิปที่ EasySlip ยืนยันยอดตรงจะอนุมัติเองอัตโนมัติ แท็บ "รอตรวจสลิป" คือรายการที่รอให้แอดมินตัดสิน</div></div>
+
+<nav class="pay-tabs" aria-label="สถานะการชำระเงิน">
+  {% for key, label, n in tabs %}
+  <a href="?tab={{ key }}" class="pay-tab {% if tab == key %}active{% endif %} {% if key == 'review' and n %}is-alert{% endif %}" {% if tab == key %}aria-current="page"{% endif %}>{{ label }} <b>{{ n }}</b></a>
+  {% endfor %}
+</nav>
+
 {% url 'dashboard:order_add' as create_url %}
 <form method="get" class="list-toolbar" role="search">
-  <div class="input-group search-box"><span class="input-group-text">{% icon "search" %}</span><input class="form-control" name="q" value="{{ ls.q }}" placeholder="นักเรียน / คอร์ส" data-search></div>
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <div class="input-group search-box"><span class="input-group-text">{% icon "search" %}</span><input class="form-control" name="q" value="{{ ls.q }}" placeholder="ชื่อ / อีเมล / เบอร์ / คอร์ส" data-search></div>
   {% for name, label, options in filters_ui %}<select name="{{ name }}" class="form-select filter-select" onchange="this.form.submit()"><option value="">{{ label }}: ทั้งหมด</option>{% for v, t in options %}<option value="{{ v }}" {% if ls.filters|get_item:name == v %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>{% endfor %}
   <input type="date" name="from" class="form-control filter-select" value="{{ ls.filters.from }}" aria-label="ตั้งแต่วันที่" title="ตั้งแต่วันที่">
   <input type="date" name="to" class="form-control filter-select" value="{{ ls.filters.to }}" aria-label="ถึงวันที่" title="ถึงวันที่">
-  <button class="btn btn-dark d-none d-md-inline-flex">กรอง</button>{% if ls.q or ls.filters %}<a href="?" class="btn btn-light">ล้าง</a>{% endif %}
-  <button type="button" class="btn btn-dark ms-md-auto" data-modal-url="{{ create_url }}">{% icon "plus-lg" %} สร้างออเดอร์</button>
+  <button class="btn btn-dark d-none d-md-inline-flex">กรอง</button>{% if ls.q or ls.filters %}<a href="?tab={{ tab }}" class="btn btn-light">ล้าง</a>{% endif %}
+  <button type="button" class="btn btn-outline-dark ms-md-auto" data-modal-url="{{ create_url }}">{% icon "plus-lg" %} สร้างออเดอร์เอง</button>
 </form>
+
 <div class="dash-card p-0 table-responsive">
-  <table class="table table-hover align-middle mb-0 table-cards">
-    <thead><tr><th>#</th><th>{% sort_th "created" "วันที่" %}</th><th>{% sort_th "student" "นักเรียน" %}</th><th>คอร์ส / แพ็กเกจ</th><th class="text-end">{% sort_th "amount" "ยอด" %}</th><th>สถานะ</th><th>ที่มา</th><th></th></tr></thead>
+  <table class="table table-hover align-middle mb-0 table-cards pay-table">
+    <thead><tr><th>สลิป</th><th>{% sort_th "created" "วันที่" %}</th><th>{% sort_th "student" "นักเรียน" %}</th><th>คอร์ส / แพ็กเกจ</th><th class="text-end">{% sort_th "amount" "ยอด" %}</th><th>สถานะ</th><th></th></tr></thead>
     <tbody>
     {% for o in ls.page.object_list %}
+      {% url 'dashboard:order_detail' o.pk as detail_url %}
       <tr>
-        <td data-label="#"><a href="{% url 'dashboard:order_detail' o.pk %}" class="fw-medium">#{{ o.pk }}</a></td>
-        <td data-label="วันที่" class="small text-nowrap">{{ o.created_at|date:"j M y H:i" }}</td>
-        <td data-label="นักเรียน"><a href="{% url 'dashboard:student_detail' o.user.pk %}">{{ o.user.full_name }}</a><div class="small text-secondary">{{ o.user.phone }}</div></td>
-        <td data-label="คอร์ส" class="wrap">{{ o.course.title }}<div class="small text-secondary">{{ o.package_label }}{% if o.is_renewal %} · ต่ออายุ{% endif %}</div></td>
-        <td data-label="ยอด" class="text-end">฿{{ o.amount|floatformat:"-2" }}</td>
-        <td data-label="สถานะ">{% include "dashboard/_order_status.html" with o=o %}</td>
-        <td data-label="ที่มา" class="small">{{ o.get_source_display }}</td>
-        <td class="row-actions-cell text-end"><a class="btn btn-sm btn-dark" href="{% url 'dashboard:order_detail' o.pk %}">ดู</a></td>
+        <td data-label="สลิป">
+          {% if o.slip_id %}<button type="button" class="slip-thumb" data-panel-url="{{ detail_url }}" aria-label="ดูสลิปออเดอร์ #{{ o.pk }}"><img src="{% url 'payments:slip_image' o.slip_id %}" alt="" loading="lazy"></button>
+          {% else %}<span class="slip-thumb is-empty" title="{% if o.source == 'manual' %}แอดมินสร้าง{% else %}ยังไม่ส่งสลิป{% endif %}">{% icon "receipt" %}</span>{% endif %}
+        </td>
+        <td data-label="วันที่" class="small text-nowrap">{{ o.created_at|date:"j M y" }}<div class="text-secondary">{{ o.created_at|date:"H:i" }} · #{{ o.pk }}</div></td>
+        <td data-label="นักเรียน"><button type="button" class="btn btn-link p-0 fw-medium text-start" data-modal-url="{% url 'dashboard:student_manage' o.user.pk %}" data-modal-size="lg">{{ o.user.full_name }}</button><div class="small text-secondary">{{ o.user.phone }}</div></td>
+        <td data-label="คอร์ส" class="wrap">{{ o.course.title }}<div class="small text-secondary">{% if o.package_label %}{{ o.package_label }}{% else %}{{ o.duration_days|package_days }}{% endif %}{% if o.is_renewal %} · ต่ออายุ{% endif %}{% if o.source == 'manual' %} · แอดมินสร้าง{% endif %}</div></td>
+        <td data-label="ยอด" class="text-end text-nowrap fw-medium">฿{{ o.amount|floatformat:"-2" }}{% if o.slip_amount and o.slip_amount != o.amount %}<div class="small text-danger fw-normal">สลิป ฿{{ o.slip_amount|floatformat:"-2" }}</div>{% endif %}</td>
+        <td data-label="สถานะ" class="wrap">{% include "dashboard/_order_status.html" with o=o %}{% if o.slip_reason and o.status != 'paid' %}<div class="small text-secondary mt-1">{{ o.slip_reason }}</div>{% endif %}</td>
+        <td class="row-actions-cell text-end"><span class="row-actions">
+          {% if o.status == 'reviewing' and o.slip_id and o.slip_status != 'verified' %}
+            <button class="btn btn-sm btn-success" data-post-url="{% url 'dashboard:slip_decide' o.slip_id %}" data-payload='{"action":"approve"}' data-confirm="อนุมัติ {{ o.user.full_name }} ฿{{ o.amount|floatformat:'-2' }} ({{ o.course.title }}) และเปิดสิทธิ์เรียน?">{% icon "check2" %} อนุมัติ</button>
+            <button class="btn btn-sm btn-outline-danger js-reject" data-url="{% url 'dashboard:slip_decide' o.slip_id %}" aria-label="ปฏิเสธสลิป">{% icon "x-lg" %}</button>
+          {% endif %}
+          <button class="btn btn-sm btn-outline-dark" data-panel-url="{{ detail_url }}">รายละเอียด</button>
+        </span></td>
       </tr>
-    {% empty %}<tr><td colspan="8">{% include "dashboard/_empty.html" with text="ไม่พบออเดอร์" icon="wallet2" %}</td></tr>{% endfor %}
+    {% empty %}<tr><td colspan="7">{% include "dashboard/_empty.html" with text="ไม่มีรายการในแท็บนี้" icon="wallet2" %}</td></tr>{% endfor %}
     </tbody>
   </table>
 </div>
 {% include "partials/_pagination.html" with page=ls.page %}
 {% endblock %}
+{% block extra_js %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}

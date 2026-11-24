@@ -29,6 +29,8 @@ urlpatterns = [
     path("sections/<int:section_id>/edit/", catalog.section_form, name="section_edit"),
     path("sections/<int:section_id>/move/<str:direction>/", catalog.section_move, name="section_move"),
     path("sections/<int:section_id>/delete/", catalog.section_delete, name="section_delete"),
+    path("courses/<int:course_id>/reorder/", catalog.course_reorder, name="course_reorder"),
+    path("sections/<int:section_id>/sort/", catalog.section_sort, name="section_sort"),
     path("sections/<int:section_id>/lessons/new/", catalog.lesson_form, name="lesson_add"),
     path("lessons/<int:lesson_id>/edit/", catalog.lesson_form, name="lesson_edit"),
     path("lessons/<int:lesson_id>/move/<str:direction>/", catalog.lesson_move, name="lesson_move"),
@@ -46,6 +48,7 @@ urlpatterns = [
     path("students/new/", people.student_form, name="student_add"),
     path("students/<int:user_id>/", people.student_detail, name="student_detail"),
     path("students/<int:user_id>/edit/", people.student_form, name="student_edit"),
+    path("students/<int:user_id>/manage/", people.student_manage, name="student_manage"),
     path("students/<int:user_id>/toggle/", people.student_toggle, name="student_toggle"),
     path("users/<int:user_id>/password/", people.student_password, name="user_password"),
 

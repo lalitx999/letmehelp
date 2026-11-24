@@ -1,18 +1,4 @@
 (function () {
-  // ปฏิเสธสลิป: ถามเหตุผล (นักเรียนจะเห็นข้อความนี้) แล้วส่งไป server
-  document.addEventListener("click", async (e) => {
-    const b = e.target.closest(".js-reject");
-    if (!b) return;
-    const reason = prompt("เหตุผลที่ปฏิเสธ (นักเรียนจะเห็นข้อความนี้)", "สลิปไม่ถูกต้อง");
-    if (reason === null) return;
-    b.disabled = true;
-    const res = await LMH.post(b.dataset.url, { action: "reject", reason });
-    if (res.ok && res.data.ok !== false) {
-      try { sessionStorage.setItem("lmh-flash", JSON.stringify({ message: res.data.message || "ปฏิเสธสลิปแล้ว", kind: "ok" })); } catch (err) { /* ไม่เป็นไร */ }
-      location.reload();
-    } else { b.disabled = false; LMH.toast((res.data && res.data.error) || "ทำรายการไม่สำเร็จ", "bad"); }
-  });
-
   // รายงาน: poll สถานะงานที่กำลังสร้าง
   const table = document.getElementById("export-table");
   if (table) {

@@ -1,0 +1,9 @@
+{% load ui %}
+<div class="dash-panel-head">
+  <div><div class="small text-secondary">ออเดอร์ #{{ o.pk }}</div><h2 class="h5 mb-0 d-flex flex-wrap align-items-center gap-2">{{ o.user.full_name }} {% include "dashboard/_order_status.html" with o=o %}</h2></div>
+  <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="ปิด"></button>
+</div>
+<div class="dash-panel-scroll">
+  {% include "dashboard/_payment_body.html" %}
+  <a href="{% url 'dashboard:order_detail' o.pk %}" class="small d-inline-block mt-3">เปิดเป็นหน้าเต็ม {% icon "box-arrow-up-right" %}</a>
+</div>

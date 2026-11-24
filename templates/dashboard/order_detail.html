@@ -1,54 +1,9 @@
 {% extends "dashboard/base.html" %}
-{% load ui %}
+{% load static ui %}
 {% block dash_title %}ออเดอร์ #{{ o.pk }}{% endblock %}
 {% block dash_content %}
-<a href="{% url 'dashboard:order_list' %}" class="crumbs">{% icon "arrow-left" %} ออเดอร์ทั้งหมด</a>
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-1 mb-4">
-  <div><h1 class="h3 mb-1">ออเดอร์ #{{ o.pk }} {% include "dashboard/_order_status.html" with o=o %}</h1>
-    <div class="small text-secondary">สร้าง {{ o.created_at|date:"j M Y H:i" }}{% if o.paid_at %} · ชำระ {{ o.paid_at|date:"j M Y H:i" }}{% endif %} · {{ o.get_source_display }}{% if o.created_by %} โดย {{ o.created_by.full_name }}{% endif %}</div></div>
-  <div class="d-flex flex-wrap gap-2">
-    {% if o.status != 'paid' and o.status != 'cancelled' and o.status != 'refunded' %}
-      <button class="btn btn-dark btn-sm" data-post-url="{% url 'dashboard:order_mark_paid' o.pk %}" data-confirm="ทำเครื่องหมายว่าชำระแล้ว และเปิดสิทธิ์เรียนให้ {{ o.user.full_name }}?">{% icon "check2" %} ชำระแล้ว (เปิดสิทธิ์)</button>
-      <button class="btn btn-outline-danger btn-sm" data-post-url="{% url 'dashboard:order_cancel' o.pk %}" data-confirm="ยกเลิกออเดอร์ #{{ o.pk }}?" data-danger>{% icon "x-circle" %} ยกเลิกออเดอร์</button>
-    {% endif %}
-    {% if o.status == 'paid' %}
-      <button class="btn btn-outline-dark btn-sm" data-post-url="{% url 'dashboard:order_resend' o.pk %}">{% icon "envelope-check" %} ส่งอีเมลยืนยันซ้ำ</button>
-      <button class="btn btn-outline-danger btn-sm" data-modal-url="{% url 'dashboard:order_refund' o.pk %}">{% icon "arrow-counterclockwise" %} คืนเงิน</button>
-    {% endif %}
-  </div>
-</div>
-<div class="row gx-lg-4 gy-3">
-  <div class="col-lg-5"><div class="dash-card">
-    <h2 class="mb-3">รายละเอียด</h2>
-    <dl class="detail-list">
-      <dt>นักเรียน</dt><dd><a href="{% url 'dashboard:student_detail' o.user.pk %}">{{ o.user.full_name }}</a><br><span class="small text-secondary">{{ o.user.email }} · {{ o.user.phone }}</span></dd>
-      <dt>คอร์ส</dt><dd>{{ o.course.title }}</dd>
-      <dt>แพ็กเกจ</dt><dd>{{ o.package_label|default:"-" }} · {{ o.duration_days|package_days }}{% if o.is_renewal %} · ต่ออายุ{% endif %}</dd>
-      <dt>ยอดเงิน</dt><dd class="fw-medium">฿{{ o.amount|floatformat:"-2" }}</dd>
-      {% if o.note %}<dt>หมายเหตุ</dt><dd>{{ o.note }}</dd>{% endif %}
-    </dl>
-  </div></div>
-  <div class="col-lg-7"><div class="dash-card">
-    <h2 class="mb-3">สลิปและผลตรวจ</h2>
-    {% for s in slips %}
-    <div class="slip-item {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
-      <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
-        <div>
-          {% if s.status == 'verified' %}<span class="chip is-green">{% icon "check-circle-fill" %} ผ่าน</span>{% elif s.status == 'rejected' %}<span class="chip is-red">{% icon "x-circle-fill" %} ไม่ผ่าน</span>{% elif s.status == 'manual_review' %}<span class="chip is-orange">{% icon "hourglass-split" %} รอแอดมินตรวจ</span>{% else %}<span class="chip">{{ s.get_status_display }}</span>{% endif %}
-          <span class="small text-secondary ms-1">{{ s.created_at|date:"j M y H:i" }}{% if s.reviewed_by %} · ตรวจโดย {{ s.reviewed_by.full_name }}{% elif s.status == 'verified' %} · ระบบตรวจอัตโนมัติ{% endif %}</span>
-          {% if s.reason %}<div class="small mt-1">{{ s.reason }}</div>{% endif %}
-          <div class="small text-secondary mt-1">{% if s.verified_amount %}ยอดในสลิป ฿{{ s.verified_amount }}{% endif %}{% if s.trans_ref %} · อ้างอิง {{ s.trans_ref }}{% endif %}</div>
-        </div>
-        <span class="row-actions">
-          <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:slip_view' s.pk %}">{% icon "image" %} ดูสลิป</button>
-          {% if s.status == 'manual_review' and o.status != 'paid' %}
-            <button class="btn btn-sm btn-success" data-post-url="{% url 'dashboard:slip_decide' s.pk %}" data-payload='{"action":"approve"}' data-confirm="อนุมัติสลิปนี้และเปิดสิทธิ์เรียน?">{% icon "check2" %} อนุมัติ</button>
-            <button class="btn btn-sm btn-outline-danger js-reject" data-url="{% url 'dashboard:slip_decide' s.pk %}">{% icon "x-lg" %} ปฏิเสธ</button>
-          {% endif %}
-        </span>
-      </div>
-    </div>
-    {% empty %}<p class="text-secondary mb-0">{% if o.source == 'manual' %}ออเดอร์นี้สร้างโดยแอดมิน ไม่มีสลิป{% else %}ยังไม่มีการส่งสลิป{% endif %}</p>{% endfor %}
-  </div></div>
-</div>
+<a href="{% url 'dashboard:order_list' %}" class="crumbs">{% icon "arrow-left" %} การชำระเงิน</a>
+<h1 class="h3 mt-1 mb-3">ออเดอร์ #{{ o.pk }} {% include "dashboard/_order_status.html" with o=o %}</h1>
+<div class="dash-card" style="max-width: 720px">{% include "dashboard/_payment_body.html" %}</div>
 {% endblock %}
+{% block extra_js %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}

@@ -150,9 +150,52 @@ def delete_section(section: Section, request):
     return "ย้ายบทไปถังขยะแล้ว"
 
 
+@transaction.atomic
 def save_lesson(form, request, section: Section):
+    """บันทึกคลิป — ถ้าแนบ PDF มาในฟอร์มเดียวกัน สร้างไฟล์แนบให้ด้วย"""
     form.instance.section = section
-    return _save_form(form, request, "Lesson")
+    lesson = _save_form(form, request, "Lesson")
+    pdf = form.cleaned_data.get("pdf_file")
+    if pdf:
+        att = LessonAttachment.objects.create(lesson=lesson, title=form.cleaned_data.get("pdf_title") or pdf.name.rsplit(".", 1)[0][:160], file=pdf)
+        audit_service.log(request=request, action="create", obj=att, changes={"lesson": lesson.pk})
+    return lesson
+
+
+def _reorder(qs, ids, what: str):
+    """จัดลำดับตามที่ลากวาง: ids ต้องเป็นรายการเดียวกับของจริงทุกตัว (กันส่งรหัสของคอร์สอื่นมาปน)"""
+    items = {o.pk: o for o in qs}
+    try:
+        ids = [int(i) for i in ids]
+    except (TypeError, ValueError):
+        raise ActionError("ข้อมูลลำดับไม่ถูกต้อง")
+    if sorted(ids) != sorted(items):
+        raise ActionError(f"รายการ{what}ไม่ตรงกับในระบบ กรุณารีเฟรชหน้าแล้วลองใหม่")
+    _renumber([items[i] for i in ids])
+    return "จัดลำดับแล้ว"
+
+
+def reorder_sections(course: Course, ids):
+    return _reorder(Section.objects.filter(course=course), ids, "บท")
+
+
+def reorder_lessons(section: Section, ids):
+    return _reorder(Lesson.objects.filter(section=section), ids, "คลิป")
+
+
+def sort_lessons_by_number(section: Section) -> str:
+    """เรียงคลิปตามเลขแรกในชื่อ เช่น "คลิปที่ 2" มาก่อน "คลิปที่ 10" — คลิปที่ไม่มีเลขอยู่ท้ายตามลำดับเดิม"""
+    import re
+
+    lessons = list(Lesson.objects.filter(section=section).order_by("order", "id"))
+
+    def key(pair):
+        i, lesson = pair
+        m = re.search(r"\d+", lesson.title)
+        return (0, int(m.group()), i) if m else (1, 0, i)
+
+    _renumber([l for _, l in sorted(enumerate(lessons), key=key)])
+    return f"เรียงคลิป {len(lessons)} คลิปตามเลขในชื่อแล้ว"
 
 
 def move_lesson(lesson: Lesson, direction: str):

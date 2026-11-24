@@ -144,6 +144,24 @@ def section_move(request, section_id, direction):
 
 
 @json_action
+def course_reorder(request, course_id):
+    """ลากวางบท/คลิป: {"kind": "sections"|"lessons", "parent": section_id (เฉพาะคลิป), "ids": [...]}"""
+    body = json.loads(request.body or "{}")
+    course = get_object_or_404(Course, pk=course_id)
+    if body.get("kind") == "sections":
+        return svc.reorder_sections(course, body.get("ids") or [])
+    if body.get("kind") == "lessons":
+        section = get_object_or_404(Section, pk=body.get("parent"), course=course)
+        return svc.reorder_lessons(section, body.get("ids") or [])
+    raise ActionError("คำสั่งไม่ถูกต้อง")
+
+
+@json_action
+def section_sort(request, section_id):
+    return svc.sort_lessons_by_number(_section(section_id))
+
+
+@json_action
 def section_delete(request, section_id):
     return svc.delete_section(_section(section_id), request)
 
@@ -152,10 +170,10 @@ def section_delete(request, section_id):
 def lesson_form(request, section_id=None, lesson_id=None):
     lesson = _lesson(lesson_id) if lesson_id else None
     section = lesson.section if lesson else _section(section_id)
-    form = LessonForm(request.POST or None, instance=lesson)
+    form = LessonForm(request.POST or None, request.FILES or None, instance=lesson)
     return modal_form(request, form, save=lambda f: svc.save_lesson(f, request, section),
                       title="แก้ไขคลิป" if lesson else "เพิ่มคลิป", ok_message="บันทึกคลิปแล้ว",
-                      intro=f"บท: {section.title} · อัปโหลดวิดีโอเป็น Unlisted/Private บน YouTube แล้ววางลิงก์",
+                      intro=f"บท: {section.title} · อัปโหลดวิดีโอเป็น Unlisted บน YouTube แล้ววางลิงก์ แนบ PDF ประกอบได้ในฟอร์มนี้",
                       back=reverse("dashboard:course_content", args=[section.course_id]))
 
 

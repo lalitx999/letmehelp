@@ -60,6 +60,8 @@
 
 <!-- modal กลางของหลังบ้าน: ฟอร์มเพิ่ม/แก้ไข (โหลดด้วย Ajax) และกล่องยืนยัน -->
 <div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"></div></div></div>
+<!-- แผงรายละเอียดด้านขวา (เช่น การชำระเงิน) — โหลดด้วย Ajax ไม่ต้องเปลี่ยนหน้า -->
+<div class="offcanvas offcanvas-end dash-panel" tabindex="-1" id="dashPanel" aria-label="รายละเอียด"><div class="dash-panel-body"></div></div>
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
   <div class="modal-body p-4">
     <span class="icon-chip is-red mb-3" id="confirmIcon">{% icon "exclamation-triangle" %}</span>

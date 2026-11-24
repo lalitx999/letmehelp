@@ -94,7 +94,10 @@ class SectionForm(_Bootstrap, forms.ModelForm):
 
 
 class LessonForm(_Bootstrap, forms.ModelForm):
-    youtube_url = forms.CharField(label="ลิงก์ YouTube (Unlisted/Private)")
+    youtube_url = forms.CharField(label="ลิงก์ YouTube (Unlisted)")
+    # แนบ PDF ได้ในฟอร์มเดียวกัน (ไม่บังคับ) — เพิ่มทีละไฟล์ ไฟล์เดิมยังอยู่
+    pdf_file = forms.FileField(label="แนบไฟล์ PDF (ไม่บังคับ)", required=False, help_text="PDF ไม่เกิน 25MB · มีไฟล์เดิมอยู่แล้วจะเพิ่มเป็นไฟล์ใหม่")
+    pdf_title = forms.CharField(label="ชื่อไฟล์ที่นักเรียนเห็น", required=False, max_length=160, help_text="เว้นว่าง = ใช้ชื่อไฟล์")
 
     class Meta:
         model = Lesson
@@ -104,6 +107,8 @@ class LessonForm(_Bootstrap, forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields["youtube_url"].initial = self.instance.youtube_video_id
+        self.fields["order"].label = "ลำดับ"
+        self.fields["order"].help_text = "จัดลำดับง่ายกว่าด้วยการลากในหน้าเนื้อหาคอร์ส"
         self._style()
 
     def clean_youtube_url(self):
@@ -111,6 +116,14 @@ class LessonForm(_Bootstrap, forms.ModelForm):
         if not vid:
             raise forms.ValidationError("ลิงก์ YouTube ไม่ถูกต้อง")
         return vid
+
+    def clean_pdf_file(self):
+        f = self.cleaned_data.get("pdf_file")
+        if f and not f.name.lower().endswith(".pdf"):
+            raise forms.ValidationError("รองรับเฉพาะไฟล์ PDF")
+        if f and f.size > 25 * 1024 * 1024:
+            raise forms.ValidationError("ไฟล์ใหญ่เกิน 25MB")
+        return f
 
     def save(self, commit=True):
         self.instance.youtube_video_id = self.cleaned_data["youtube_url"]

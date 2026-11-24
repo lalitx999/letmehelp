@@ -3,7 +3,9 @@ import json
 
 from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.dateparse import parse_date
 from django.urls import reverse
 from django.utils import timezone
 
@@ -12,7 +14,7 @@ from apps.accounts.models import User
 from apps.accounts.services import account_service
 from apps.core.decorators import staff_required
 from apps.core.exceptions import ActionError
-from apps.dashboard.crud import json_action, modal_form
+from apps.dashboard.crud import is_fetch, json_action, modal_form
 from apps.dashboard.selectors import people_selector as sel
 from apps.dashboard.selectors.list_params import paginate
 from apps.enrollments.forms import ExtendForm, GrantForm
@@ -68,6 +70,33 @@ def student_form(request, user_id=None):
         messages.info(request, f"สร้างบัญชีแล้ว — อีเมล {result['user'].email} · รหัสผ่านชั่วคราว: {result['pwd']} (แจ้งนักเรียนและให้เปลี่ยนรหัสผ่านเอง)")
         resp["Location"] = reverse("dashboard:student_detail", args=[result["user"].pk])
     return resp
+
+
+@staff_required
+def student_manage(request, user_id):
+    """หน้าต่างนักเรียนแบบรวม (แนว ryu): ข้อมูลส่วนตัว + สิทธิ์ทุกคอร์สในตารางเดียว บันทึกครั้งเดียว"""
+    student = get_object_or_404(User, pk=user_id, is_staff=False)
+    if not is_fetch(request):
+        return redirect("dashboard:student_detail", user_id=student.pk)
+    form = AdminUserForm(request.POST or None, instance=student)
+    rows = sel.access_rows(student)
+    status = 200
+    if request.method == "POST":
+        for r in rows:  # ค่าที่แอดมินกรอก (ใช้ตอนแสดงฟอร์มซ้ำเมื่อมี error ด้วย)
+            r["on"] = f"on-{r['course'].pk}" in request.POST
+            r["expires"] = parse_date(request.POST.get(f"exp-{r['course'].pk}", "") or "") or r["expires"]
+        if form.is_valid():
+            with transaction.atomic():
+                if form.has_changed():
+                    account_service.update_by_admin(form, request)
+                n = enrollment_service.set_access(student, request, [(r["course"], r["on"], r["expires"]) for r in rows])
+            msg = "บันทึกแล้ว" + (f" · เปลี่ยนสิทธิ์เรียน {n} คอร์ส" if n else "")
+            return JsonResponse({"ok": True, "message": msg})
+        status = 422
+    return render(request, "dashboard/_student_manage.html", {
+        "s": student, "form": form, "rows": rows, "action": request.get_full_path(),
+        "orders": sel.student_orders(student, limit=5),
+    }, status=status)
 
 
 @json_action

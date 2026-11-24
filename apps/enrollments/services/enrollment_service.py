@@ -75,3 +75,44 @@ def restore(enrollment: Enrollment, request) -> str:
     enrollment.save(update_fields=["status"])
     audit_service.log(request=request, action="restore", obj=enrollment, label=f"{enrollment.user.full_name} → {enrollment.course.title}")
     return "กู้คืนสิทธิ์เรียนแล้ว"
+
+
+LIFETIME_DAYS = 36500  # "ตลอดชีพ" = 100 ปี (หน้าเว็บแสดงเป็นตลอดชีพเมื่อปีหมดอายุ > 2100)
+
+
+def _end_of_day(d):
+    return timezone.make_aware(datetime.combine(d, datetime.max.time().replace(microsecond=0)))
+
+
+@transaction.atomic
+def set_access(user, request, rows) -> int:
+    """หน้าต่างนักเรียนในหลังบ้าน: ตั้งสิทธิ์ทุกคอร์สทีเดียว
+    rows = [(course, เปิดสิทธิ์?, วันหมดอายุ date|None)] — ทำเฉพาะแถวที่เปลี่ยนจริง คืนจำนวนแถวที่เปลี่ยน
+    เปิด + ยังไม่เคยมี → มอบสิทธิ์ · เปิด + มีอยู่ → ปรับวัน/กู้คืน · ปิด → ยกเลิกสิทธิ์ (กู้คืนได้ ไม่ลบประวัติ)"""
+    current = {e.course_id: e for e in Enrollment.objects.select_for_update().filter(user=user)}
+    now = timezone.now()
+    changed = 0
+    for course, on, expires_on in rows:
+        enr = current.get(course.pk)
+        label = f"{user.full_name} → {course.title}"
+        if on:
+            expires_at = _end_of_day(expires_on) if expires_on else now + timedelta(days=course.access_days)
+            status = Enrollment.Status.ACTIVE if expires_at > now else Enrollment.Status.EXPIRED
+            if enr is None:
+                enr = Enrollment.objects.create(user=user, course=course, started_at=now, expires_at=expires_at, status=status,
+                                                source="manual", granted_by=request.user)
+                audit_service.log(request=request, action="grant", obj=enr, label=label, changes={"expires_at": expires_at.isoformat()})
+                changed += 1
+            elif enr.status == Enrollment.Status.CANCELLED or enr.expires_at.date() != expires_at.date() or enr.status != status:
+                old = enr.expires_at
+                enr.expires_at, enr.status = expires_at, status
+                enr.save(update_fields=["expires_at", "status"])
+                audit_service.log(request=request, action="extend", obj=enr, label=label,
+                                  changes={"expires_at": [old.isoformat(), expires_at.isoformat()]})
+                changed += 1
+        elif enr is not None and enr.status != Enrollment.Status.CANCELLED:
+            enr.status = Enrollment.Status.CANCELLED
+            enr.save(update_fields=["status"])
+            audit_service.log(request=request, action="revoke", obj=enr, label=label)
+            changed += 1
+    return changed
