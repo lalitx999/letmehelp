@@ -40,7 +40,7 @@
       {% for x in courses %}{% with c=x.c %}
         <tr>
           <td><a href="{{ x.url }}" class="fw-medium">{{ c.title }}</a>{% if c.subtitle %}<div class="small text-secondary">{{ c.subtitle }}</div>{% endif %}</td>
-          <td class="text-end text-nowrap">฿{{ c.current_price|floatformat:"-2" }}{% if c.promo_active %}<div class="small text-secondary">ปกติ ฿{{ c.price|floatformat:"-2" }}{% if c.promo_ends_on %} · โปรถึง {{ c.promo_ends_on|date:"j M Y" }}{% endif %}</div>{% endif %}</td>
+          <td class="text-end text-nowrap">฿{{ c.current_price|floatformat:"-2g" }}{% if c.promo_active %}<div class="small text-secondary">ปกติ ฿{{ c.price|floatformat:"-2g" }}{% if c.promo_ends_on %} · โปรถึง {{ c.promo_ends_on|thai_date }}{% endif %}</div>{% endif %}</td>
           <td class="text-nowrap">{{ c.access_days|package_days }}</td>
           <td class="text-end">{{ x.lessons }}</td>
         </tr>

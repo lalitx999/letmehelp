@@ -51,7 +51,11 @@
       {% for p in posters %}
       <a href="{{ p.url }}" class="poster" data-reveal style="--i: {{ forloop.counter0 }}">
         <img src="{% static p.image %}" alt="{{ p.title }}" width="720" height="1018" loading="lazy">
-        <span class="poster-go"><span>{{ p.title }}</span>{% icon "arrow-up-right" %}</span>
+        <span class="poster-cap">
+          <span class="min-w-0"><b>{{ p.title }}</b>{% if p.course.subtitle %}<small>{{ p.course.subtitle }}</small>{% endif %}</span>
+          {% if p.course %}<span class="card-price">{% if p.course.promo_active %}<s>&#3647;{{ p.course.price|floatformat:"-2g" }}</s>{% endif %}<b>&#3647;{{ p.course.current_price|floatformat:"-2g" }}</b></span>{% endif %}
+          <span class="poster-go-btn" aria-hidden="true">{% icon "arrow-up-right" %}</span>
+        </span>
       </a>
       {% endfor %}
     </div>

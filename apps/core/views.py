@@ -36,7 +36,7 @@ def _course_posters():
             url = reverse("courses:detail", args=[courses[0].slug])
         else:
             url = reverse("courses:list") + f"?category={slug}"
-        posters.append({"image": image, "title": title, "url": url})
+        posters.append({"image": image, "title": title, "url": url, "course": courses[0] if len(courses) == 1 else None})
     return posters
 
 

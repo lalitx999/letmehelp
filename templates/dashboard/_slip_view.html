@@ -4,7 +4,7 @@
   <div class="slip-frame mb-3"><img src="{% url 'payments:slip_image' slip.pk %}" alt="สลิปโอนเงิน" class="img-fluid rounded-3"></div>
   <dl class="detail-list mb-2">
     <dt>นักเรียน</dt><dd>{{ slip.order.user.full_name }} · {{ slip.order.user.phone }}</dd>
-    <dt>ต้องชำระ</dt><dd>฿{{ slip.order.amount|floatformat:"-2" }} · {{ slip.order.course.title }}</dd>
+    <dt>ต้องชำระ</dt><dd>฿{{ slip.order.amount|floatformat:"-2g" }} · {{ slip.order.course.title }}</dd>
     {% if slip.verified_amount %}<dt>ยอดในสลิป</dt><dd class="{% if slip.verified_amount != slip.order.amount %}text-danger fw-medium{% endif %}">฿{{ slip.verified_amount }}</dd>{% endif %}
     {% if slip.trans_ref %}<dt>เลขอ้างอิง</dt><dd class="small">{{ slip.trans_ref }}</dd>{% endif %}
     {% if slip.reason %}<dt>ผลตรวจ</dt><dd>{{ slip.reason }}</dd>{% endif %}

@@ -24,7 +24,7 @@
       {% for l in g.lessons %}
       <a href="{% url 'learning:player_lesson' g.course.slug l.pk %}" class="lesson-line text-body d-flex" style="padding: .9rem 1.5rem;">
         <span class="text-success">{% icon "play-circle-fill" "icon-lg" %}</span>
-        <span class="t"><span class="fw-medium">{{ l.title }}</span><span class="d-block small text-secondary">{{ l.section.title }}</span></span>
+        <span class="t"><span class="fw-medium">{{ l.title }}</span>{% if l.section.title != l.title %}<span class="d-block small text-secondary">{{ l.section.title }}</span>{% endif %}</span>
         <span class="chip is-green">ดูฟรี</span>
         {% if l.duration_seconds %}<span class="small text-secondary">{{ l.duration_seconds|hms }}</span>{% endif %}
         {% icon "chevron-right" %}

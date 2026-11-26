@@ -20,7 +20,7 @@
 <section class="section pt-3">
   <div class="container">
     {% if page.object_list %}
-    <div class="row g-4">
+    <div class="row g-4 justify-content-center">
       {% for c in page.object_list %}<div class="col-sm-6 col-lg-4" data-reveal style="--i: {{ forloop.counter0 }}">{% include "partials/_course_card.html" %}</div>{% endfor %}
     </div>
     {% include "partials/_pagination.html" %}

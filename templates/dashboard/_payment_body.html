@@ -15,7 +15,7 @@
   <dt>นักเรียน</dt><dd><button type="button" class="btn btn-link p-0 fw-medium" data-modal-url="{% url 'dashboard:student_manage' o.user.pk %}" data-modal-size="lg">{{ o.user.full_name }}</button><br><span class="small text-secondary">{{ o.user.email }} · {{ o.user.phone }}</span></dd>
   <dt>คอร์ส</dt><dd>{{ o.course.title }}</dd>
   <dt>แพ็กเกจ</dt><dd>{% if o.package_label %}{{ o.package_label }}{% else %}{{ o.duration_days|package_days }}{% endif %}{% if o.is_renewal %} · ต่ออายุ{% endif %}</dd>
-  <dt>ยอดที่ต้องชำระ</dt><dd class="fw-medium">฿{{ o.amount|floatformat:"-2" }}</dd>
+  <dt>ยอดที่ต้องชำระ</dt><dd class="fw-medium">฿{{ o.amount|floatformat:"-2g" }}</dd>
   <dt>เวลา</dt><dd class="small">สร้าง {{ o.created_at|date:"j M Y H:i" }}{% if o.paid_at %}<br>ชำระ {{ o.paid_at|date:"j M Y H:i" }}{% endif %}<br>{{ o.get_source_display }}{% if o.created_by %} โดย {{ o.created_by.full_name }}{% endif %}</dd>
   {% if o.note %}<dt>หมายเหตุ</dt><dd>{{ o.note }}</dd>{% endif %}
 </dl>
@@ -29,7 +29,7 @@
   </div>
   <a href="{% url 'payments:slip_image' s.pk %}" target="_blank" rel="noopener" class="pay-slip-img" title="เปิดรูปเต็ม"><img src="{% url 'payments:slip_image' s.pk %}" alt="สลิปโอนเงิน" loading="lazy"></a>
   <dl class="detail-list small mt-2 mb-2">
-    {% if s.verified_amount %}<dt>ยอดในสลิป</dt><dd class="{% if s.verified_amount != o.amount %}text-danger fw-medium{% endif %}">฿{{ s.verified_amount|floatformat:"-2" }}{% if s.verified_amount != o.amount %} (ไม่ตรงกับ ฿{{ o.amount|floatformat:"-2" }}){% endif %}</dd>{% endif %}
+    {% if s.verified_amount %}<dt>ยอดในสลิป</dt><dd class="{% if s.verified_amount != o.amount %}text-danger fw-medium{% endif %}">฿{{ s.verified_amount|floatformat:"-2g" }}{% if s.verified_amount != o.amount %} (ไม่ตรงกับ ฿{{ o.amount|floatformat:"-2g" }}){% endif %}</dd>{% endif %}
     {% if s.trans_ref %}<dt>เลขอ้างอิง</dt><dd>{{ s.trans_ref }}</dd>{% endif %}
     {% if s.reason %}<dt>ผลตรวจ</dt><dd>{{ s.reason }}</dd>{% endif %}
   </dl>

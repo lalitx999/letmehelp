@@ -6,7 +6,7 @@
 {% endfor %}
 ## คอร์ส (ราคาปัจจุบัน)
 
-{% for x in courses %}{% with c=x.c %}- [{{ c.title }}]({{ site }}{{ x.url }}): {% if c.subtitle %}{{ c.subtitle }} — {% endif %}ราคา {{ c.current_price|floatformat:"-2" }} บาท{% if c.promo_active %} (ราคาโปรโมชัน ปกติ {{ c.price|floatformat:"-2" }} บาท{% if c.promo_ends_on %} ถึง {{ c.promo_ends_on|date:"Y-m-d" }}{% endif %}){% endif %}, เรียนได้ {{ c.access_days|package_days }}, {{ x.lessons }} คลิป
+{% for x in courses %}{% with c=x.c %}- [{{ c.title }}]({{ site }}{{ x.url }}): {% if c.subtitle %}{{ c.subtitle }} — {% endif %}ราคา {{ c.current_price|floatformat:"-2g" }} บาท{% if c.promo_active %} (ราคาโปรโมชัน ปกติ {{ c.price|floatformat:"-2g" }} บาท{% if c.promo_ends_on %} ถึง {{ c.promo_ends_on|date:"Y-m-d" }}{% endif %}){% endif %}, เรียนได้ {{ c.access_days|package_days }}, {{ x.lessons }} คลิป
 {% endwith %}{% empty %}- กำลังเตรียมคอร์สแรก
 {% endfor %}
 ## หน้าสำคัญ
@@ -32,7 +32,7 @@
 ### {{ c.title }}
 
 - ลิงก์: {{ site }}{{ x.url }}
-- ราคา: {{ c.current_price|floatformat:"-2" }} บาท{% if c.promo_active %} (โปรโมชัน ปกติ {{ c.price|floatformat:"-2" }} บาท){% endif %}
+- ราคา: {{ c.current_price|floatformat:"-2g" }} บาท{% if c.promo_active %} (โปรโมชัน ปกติ {{ c.price|floatformat:"-2g" }} บาท){% endif %}
 - อายุคอร์ส: {{ c.access_days|package_days }} นับจากวันที่ชำระเงินสำเร็จ
 {% if c.book_url %}- หนังสือเล่ม: สั่งซื้อแยกได้ที่ {{ c.book_url }}
 {% endif %}{% if c.description %}

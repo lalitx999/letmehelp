@@ -25,7 +25,7 @@
         <div class="d-flex justify-content-between small mb-2"><span class="text-secondary">{% icon "clock" %} อายุคอร์ส</span><span>{{ order.duration_days|package_days }}</span></div>
         {% if order.is_renewal %}<div class="d-flex justify-content-between small mb-2"><span class="text-secondary">{% icon "arrow-repeat" %} ประเภท</span><span>ต่ออายุ</span></div>{% endif %}
         <hr>
-        <div class="text-secondary small mb-1">ยอดชำระ</div><div class="sum-total">฿{{ order.amount|floatformat:"-2" }}</div>
+        <div class="text-secondary small mb-1">ยอดชำระ</div><div class="sum-total">฿{{ order.amount|floatformat:"-2g" }}</div>
         {% if already_active %}<div class="state info mt-3 small">{% icon "info-circle" %}<div>คุณมีสิทธิ์เรียนอยู่ถึง {{ already_active.expires_at|date:"j M Y" }} การต่ออายุจะนับต่อจากวันหมดอายุเดิม</div></div>{% endif %}
         <ul class="checklist mt-3 mb-0">
           <li>{% icon "check-circle-fill" %}ตรวจสลิปอัตโนมัติ</li>
@@ -43,7 +43,7 @@
           <a href="?days={{ p.days }}" class="pkg {% if p.days == selected_days %}is-on{% endif %}" {% if p.days == selected_days %}aria-current="true"{% endif %}>
             <span class="pkg-dot">{% if p.days == selected_days %}{% icon "check2" %}{% endif %}</span>
             <span class="flex-grow-1"><b>{{ p.label }}</b><span class="d-block small text-secondary">{% if p.is_lifetime %}เรียนได้ตลอดชีพ{% else %}เรียนได้ {{ p.days }} วัน{% endif %}</span></span>
-            <span class="price" style="font-size: 1.15rem;">฿{{ p.price|floatformat:"-2" }}</span>
+            <span class="price" style="font-size: 1.15rem;">฿{{ p.price|floatformat:"-2g" }}</span>
           </a>
           {% endfor %}
         </div>

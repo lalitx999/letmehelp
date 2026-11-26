@@ -55,7 +55,7 @@
     {% if orders %}
     <h3 class="sm-h mt-4">{% icon "wallet2" %} ออเดอร์ล่าสุด</h3>
     <ul class="list-unstyled small mb-0">
-      {% for o in orders %}<li class="d-flex flex-wrap gap-2 align-items-center py-1"><span class="text-secondary">{{ o.created_at|date:"j M y" }}</span> {{ o.course.title }} · ฿{{ o.amount|floatformat:"-2" }} {% include "dashboard/_order_status.html" with o=o %}</li>{% endfor %}
+      {% for o in orders %}<li class="d-flex flex-wrap gap-2 align-items-center py-1"><span class="text-secondary">{{ o.created_at|date:"j M y" }}</span> {{ o.course.title }} · ฿{{ o.amount|floatformat:"-2g" }} {% include "dashboard/_order_status.html" with o=o %}</li>{% endfor %}
     </ul>
     {% endif %}
   </div>

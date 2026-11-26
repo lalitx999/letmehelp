@@ -53,7 +53,7 @@
     <thead><tr><th>#</th><th>วันที่</th><th>คอร์ส</th><th class="text-end">ยอด</th><th>สถานะ</th></tr></thead>
     <tbody>
     {% for o in orders %}
-      <tr><td data-label="#"><a href="{% url 'dashboard:order_detail' o.pk %}" class="fw-medium">#{{ o.pk }}</a></td><td data-label="วันที่" class="small">{{ o.created_at|date:"j M y H:i" }}</td><td data-label="คอร์ส" class="wrap">{{ o.course.title }}</td><td data-label="ยอด" class="text-end">฿{{ o.amount|floatformat:"-2" }}</td><td data-label="สถานะ">{% include "dashboard/_order_status.html" with o=o %}</td></tr>
+      <tr><td data-label="#"><a href="{% url 'dashboard:order_detail' o.pk %}" class="fw-medium">#{{ o.pk }}</a></td><td data-label="วันที่" class="small">{{ o.created_at|date:"j M y H:i" }}</td><td data-label="คอร์ส" class="wrap">{{ o.course.title }}</td><td data-label="ยอด" class="text-end">฿{{ o.amount|floatformat:"-2g" }}</td><td data-label="สถานะ">{% include "dashboard/_order_status.html" with o=o %}</td></tr>
     {% empty %}<tr><td colspan="5" class="text-secondary text-center py-4">ยังไม่มีออเดอร์</td></tr>{% endfor %}
     </tbody>
   </table>

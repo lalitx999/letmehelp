@@ -125,3 +125,20 @@ def jsonld(data):
         return ""
     body = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     return mark_safe(f'<script type="application/ld+json">{body}</script>')
+
+
+TH_MONTHS = ("ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.")
+
+
+@register.filter
+def thai_date(value):
+    """วันที่แบบไทย ปี พ.ศ. เช่น 16 มี.ค. 2570 (หน้าเว็บสาธารณะ — คนไทยคุ้นกับ พ.ศ. มากกว่า ค.ศ.)"""
+    if not value:
+        return ""
+    from datetime import datetime
+
+    from django.utils import timezone
+
+    if isinstance(value, datetime):
+        value = timezone.localtime(value) if timezone.is_aware(value) else value
+    return f"{value.day} {TH_MONTHS[value.month - 1]} {value.year + 543}"

@@ -36,7 +36,7 @@
         <td data-label="วันที่" class="small text-nowrap">{{ o.created_at|date:"j M y" }}<div class="text-secondary">{{ o.created_at|date:"H:i" }} · #{{ o.pk }}</div></td>
         <td data-label="นักเรียน"><button type="button" class="btn btn-link p-0 fw-medium text-start" data-modal-url="{% url 'dashboard:student_manage' o.user.pk %}" data-modal-size="lg">{{ o.user.full_name }}</button><div class="small text-secondary">{{ o.user.phone }}</div></td>
         <td data-label="คอร์ส" class="wrap">{{ o.course.title }}<div class="small text-secondary">{% if o.package_label %}{{ o.package_label }}{% else %}{{ o.duration_days|package_days }}{% endif %}{% if o.is_renewal %} · ต่ออายุ{% endif %}{% if o.source == 'manual' %} · แอดมินสร้าง{% endif %}</div></td>
-        <td data-label="ยอด" class="text-end text-nowrap fw-medium">฿{{ o.amount|floatformat:"-2" }}{% if o.slip_amount and o.slip_amount != o.amount %}<div class="small text-danger fw-normal">สลิป ฿{{ o.slip_amount|floatformat:"-2" }}</div>{% endif %}</td>
+        <td data-label="ยอด" class="text-end text-nowrap fw-medium">฿{{ o.amount|floatformat:"-2g" }}{% if o.slip_amount and o.slip_amount != o.amount %}<div class="small text-danger fw-normal">สลิป ฿{{ o.slip_amount|floatformat:"-2g" }}</div>{% endif %}</td>
         <td data-label="สถานะ" class="wrap">{% include "dashboard/_order_status.html" with o=o %}{% if o.slip_reason and o.status != 'paid' %}<div class="small text-secondary mt-1">{{ o.slip_reason }}</div>{% endif %}</td>
         <td class="row-actions-cell text-end"><span class="row-actions">
           {% if o.status == 'reviewing' and o.slip_id and o.slip_status != 'verified' %}

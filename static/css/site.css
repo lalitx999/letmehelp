@@ -172,7 +172,7 @@ p a, .state a, .crumbs a:hover, .site-footer a:not(.btn):hover { text-decoration
 .section-head { max-width: 760px; margin-bottom: 3rem; }
 .section-head h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -.035em; line-height: 1.08; margin-top: 1rem; }
 .badge { font-weight: 500; letter-spacing: 0; }
-.chip { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .75rem; border-radius: 999px; font-family: var(--mono); font-size: .74rem; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); background: var(--t, var(--panel)); }
+.chip { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .75rem; border-radius: 999px; font-size: .8rem; font-weight: 500; letter-spacing: 0; color: var(--ink); background: var(--t, var(--panel)); }
 
 /* ---- Navbar -------------------------------------------------------------- */
 /* navbar ลอยเป็นเม็ดยากระจก — เบลอวางที่ ::before (ห้ามใส่ backdrop-filter ที่ตัว element:
@@ -265,7 +265,7 @@ body { background: linear-gradient(180deg, var(--canvas) 0, var(--paper) 760px) 
 @media (max-width: 767.98px) { .hero-gallery { grid-template-columns: repeat(2, 1fr); } .hero-gallery figure:nth-child(even) { margin-top: 1rem; } }
 
 /* โปสเตอร์คอร์ส */
-.posters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2rem); max-width: 52rem; margin-inline: auto; }
+.posters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2rem); max-width: 44rem; margin-inline: auto; }
 .poster { position: relative; display: block; border-radius: var(--r-md); overflow: hidden; background: var(--panel); box-shadow: var(--shadow-md); color: var(--ink); }
 .poster img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 1018; object-fit: cover; transition: transform .8s var(--ease); }
 .poster:hover img { transform: scale(1.03); }
@@ -483,7 +483,7 @@ body.is-protected main { -webkit-user-select: none; user-select: none; }
 body.is-protected textarea, body.is-protected input { -webkit-user-select: text; user-select: text; }
 .lesson-panel { max-height: calc(100vh - 150px); display: flex; flex-direction: column; overflow: hidden; }
 .lesson-scroll { overflow: auto; padding: .5rem; }
-.sec-title { padding: .9rem .9rem .35rem; font-family: var(--mono); font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.sec-title { padding: .9rem .9rem .3rem; font-size: .8rem; font-weight: 600; color: var(--lmh-blue); }
 .lesson-item { display: flex; gap: .7rem; align-items: center; padding: .6rem .8rem; border-radius: 16px; color: var(--ink-2); font-size: .92rem; line-height: 1.4; transition: background-color .15s; }
 .lesson-item:hover { background: var(--panel); color: var(--ink); }
 .lesson-item.active { background: var(--p-blue); color: var(--lmh-blue); font-weight: 600; box-shadow: inset 3px 0 0 var(--lmh-blue); }
@@ -687,8 +687,8 @@ body.is-admin { background: #f4f4f6; }
 /* ---- แชทบอทลอย ---------------------------------------------------------- */
 .chat-fab { position: fixed; right: 1.1rem; bottom: 1.1rem; z-index: 1035; height: 54px; padding: 0 1.25rem 0 1rem; border: 0; border-radius: 999px; background: #fff; color: var(--lmh-blue); outline: 1px solid var(--line-strong); display: inline-flex; align-items: center; gap: .55rem; font-weight: 600; box-shadow: 0 14px 40px rgba(20, 24, 31, .25); transition: transform .3s var(--ease), box-shadow .3s; }
 .chat-fab:hover { transform: translateY(-3px); box-shadow: 0 18px 46px rgba(20, 24, 31, .32); }
-.chat-fab::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(20, 24, 31, .35); animation: fab-ping 3.2s var(--ease) 1.5s 3; pointer-events: none; }
-@keyframes fab-ping { 0% { box-shadow: 0 0 0 0 rgba(20, 24, 31, .35); } 70%, 100% { box-shadow: 0 0 0 16px rgba(20, 24, 31, 0); } }
+.chat-fab::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(5, 79, 144, .3); animation: fab-ping 3.2s var(--ease) 1.5s 3; pointer-events: none; }
+@keyframes fab-ping { 0% { box-shadow: 0 0 0 0 rgba(5, 79, 144, .3); } 70%, 100% { box-shadow: 0 0 0 16px rgba(5, 79, 144, 0); } }
 .chat-fab .icon { color: var(--lmh-red); }
 .chat.is-open .chat-fab { display: none; }
 @media (max-width: 767.98px) { body.has-tabbar .chat-fab { bottom: calc(64px + 1.5rem + env(safe-area-inset-bottom)); } }
@@ -945,5 +945,46 @@ body.is-sorting, body.is-sorting * { cursor: grabbing !important; user-select: n
 /* ปกคอร์สแบบโปสเตอร์แนวตั้ง (สัดส่วน A4 ตามภาพปกจริง) — เห็นทั้งภาพ ไม่ถูกตัด */
 .course-card .cover.is-poster { aspect-ratio: 1055 / 1491; }
 .cover.is-poster img, .hero-cover.is-poster img { object-fit: contain; }
-.hero-cover.is-poster { aspect-ratio: 1055 / 1491; max-width: 440px; margin-inline: auto; }
+.hero-cover.is-poster { aspect-ratio: 1055 / 1491; max-width: 380px; margin-inline: auto; }
 @media (max-width: 991.98px) { .hero-cover.is-poster { max-width: 360px; } }
+
+/* ราคาในการ์ดคอร์ส/โปสเตอร์: ราคาจริงตัวใหญ่สีแดง ราคาเดิมขีดฆ่าตัวเล็ก */
+.card-price { display: flex; flex-direction: column; align-items: flex-end; flex: none; line-height: 1.15; }
+.card-price b { font-size: 1.2rem; font-weight: 700; color: var(--lmh-red); letter-spacing: -.02em; }
+.card-price s { font-size: .8rem; color: var(--muted); }
+.cover.is-poster .tag { display: none; }   /* โปสเตอร์มีชื่อคอร์สในภาพอยู่แล้ว */
+
+/* โปสเตอร์หน้าแรก: ชื่อ + ราคาอยู่ใต้ภาพ (ไม่ทับภาพ) */
+.poster { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line); }
+.poster img { border-radius: calc(var(--r-md) - 2px) calc(var(--r-md) - 2px) 0 0; }
+.poster-cap { display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem 1rem; }
+.poster-cap > .min-w-0 { flex: 1; display: flex; flex-direction: column; }
+.poster-cap b { font-size: 1.05rem; line-height: 1.3; }
+.poster-cap small { color: var(--muted); font-size: .85rem; }
+.poster-go-btn { width: 36px; height: 36px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--lmh-blue); color: #fff; transition: transform .35s var(--ease); }
+.poster:hover .poster-go-btn { transform: rotate(45deg); }
+@media (max-width: 575.98px) {
+  .poster-cap { flex-wrap: wrap; gap: .35rem .5rem; padding: .65rem .7rem .8rem; }
+  .poster-cap > .min-w-0 { flex-basis: 100%; }
+  .poster-cap b { font-size: .92rem; }
+  .poster-cap small { display: none; }
+  .poster-cap .card-price { flex-direction: row; align-items: baseline; gap: .35rem; margin-right: auto; }
+  .poster-cap .card-price b { font-size: 1.05rem; }
+  .poster-go-btn { width: 30px; height: 30px; }
+}
+
+/* หน้าคอร์ส: ราคา + ปุ่มสมัครอยู่ส่วนบน เห็นได้ทันทีโดยไม่ต้องเลื่อน */
+.course-hero .hero-buy { margin-top: 1.6rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+.course-hero .buy-price small { font-size: .95rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.course-hero .buy-price { color: var(--lmh-red); }
+.course-hero .buy-price s { color: var(--muted); }
+@media (min-width: 992px) { .course-hero { padding-top: 1rem; } }
+@media (max-width: 575.98px) { .course-hero .hero-buy .btn-lg { flex: 1 1 100%; } }
+.lesson-line.is-flat { padding: 1rem 1.25rem; }
+
+/* หัวข้อภาษาไทย 2 บรรทัด: สระบน/ล่างไม่ชนกัน */
+.display-6 { line-height: 1.32; }
+.display-6 .soft { margin-bottom: .1em; }
+/* หน้าแรก: ระยะระหว่างแถวภาพ hero กับส่วนคอร์ส */
+.hero + .section { padding-top: clamp(1.5rem, 4vw, 3rem); }
+@media (max-width: 575.98px) { .creds { gap: .35rem; } .creds li { font-size: .8rem; padding: .25rem .65rem; } }

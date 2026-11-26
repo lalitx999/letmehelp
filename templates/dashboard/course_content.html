@@ -8,7 +8,7 @@
     <h1 class="h3 mb-1 mt-1">{{ course.title }}</h1>
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <span class="chip {% if course.is_published %}is-green{% endif %}">{% if course.is_published %}{% icon "check-circle-fill" %} เผยแพร่{% else %}{% icon "pencil-square" %} ฉบับร่าง{% endif %}</span>
-      <span class="small text-secondary">{{ course.category.name }} · {% if course.promo_active %}<s>฿{{ course.price|floatformat:"-2" }}</s> ฿{{ course.current_price|floatformat:"-2" }} (โปรถึง {{ course.promo_ends_on|date:"j M Y" }}){% else %}฿{{ course.price|floatformat:"-2" }}{% endif %} · {{ course.access_days }} วัน</span>
+      <span class="small text-secondary">{{ course.category.name }} · {% if course.promo_active %}<s>฿{{ course.price|floatformat:"-2g" }}</s> ฿{{ course.current_price|floatformat:"-2g" }} (โปรถึง {{ course.promo_ends_on|date:"j M Y" }}){% else %}฿{{ course.price|floatformat:"-2g" }}{% endif %} · {{ course.access_days }} วัน</span>
     </div>
   </div>
   <div class="d-flex flex-wrap gap-2">
@@ -26,12 +26,12 @@
   </div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2 flex-wrap">
-      <span><b>{{ base_label }}</b> <span class="chip ms-1">แพ็กเกจหลัก</span> <span class="text-secondary small">· {{ course.access_days }} วัน · ฿{{ course.price|floatformat:"-2" }}</span></span>
+      <span><b>{{ base_label }}</b> <span class="chip ms-1">แพ็กเกจหลัก</span> <span class="text-secondary small">· {{ course.access_days }} วัน · ฿{{ course.price|floatformat:"-2g" }}</span></span>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboard:course_edit' course.pk %}">{% icon "pencil-square" %} แก้ราคา/อายุหลัก</a>
     </li>
     {% for p in course.packages.all %}
     <li class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2 flex-wrap">
-      <span><b>{{ p.label }}</b> <span class="text-secondary small">· {{ p.days }} วัน · ฿{{ p.price|floatformat:"-2" }}</span> {% if not p.is_active %}<span class="chip">ปิดขาย</span>{% endif %}</span>
+      <span><b>{{ p.label }}</b> <span class="text-secondary small">· {{ p.days }} วัน · ฿{{ p.price|floatformat:"-2g" }}</span> {% if not p.is_active %}<span class="chip">ปิดขาย</span>{% endif %}</span>
       <span class="row-actions">
         <button class="btn btn-sm btn-outline-secondary" data-post-url="{% url 'dashboard:package_toggle' p.pk %}" title="เปิด/ปิดขาย">{% if p.is_active %}{% icon "toggle-on" %}{% else %}{% icon "toggle-off" %}{% endif %}</button>
         <button class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'dashboard:package_edit' p.pk %}" aria-label="แก้ไข">{% icon "pencil-square" %}</button>
