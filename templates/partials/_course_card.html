@@ -1,6 +1,6 @@
 {% load static ui %}{% cat_style c.category.slug as st %}{% course_cover c as cover %}
 <a href="{% url 'courses:detail' c.slug %}" class="course-card">
-  <div class="cover {{ st.0 }} {% if cover %}has-photo{% endif %}">
+  <div class="cover {{ st.0 }} {% if cover %}has-photo{% if 'ytimg' not in cover %} is-poster{% endif %}{% endif %}">
     {% if cover %}<img src="{{ cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="big">{% icon st.1 "" %}</span>{% endif %}
     <span class="tag chip">{{ c.category.name }}</span>
   </div>

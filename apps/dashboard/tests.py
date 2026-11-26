@@ -410,13 +410,14 @@ class ShopeeAndContactLinkTests(DashCase):
         url = reverse("courses:detail", args=["c"])
         page = self.client.get(url).content.decode()
         self.assertNotIn("Shopee", page)
-        self.assertNotIn("ทักถามก่อนสมัคร", page)
+        self.assertNotIn("สอบถามทาง LINE ก่อนสมัคร", page)
         Course.objects.filter(pk=self.course.pk).update(book_url="https://shopee.co.th/product/1/2")
         SiteSetting.objects.create(key="LINE_CONTACT_URL", value="https://line.me/ti/p/abc")
         cache.clear()
         page = self.client.get(url).content.decode()
         self.assertIn("https://shopee.co.th/product/1/2", page)
         self.assertIn("https://line.me/ti/p/abc", page)
+        self.assertIn("สอบถามทาง LINE ก่อนสมัคร", page)
 
 
 class TelegramNotifyTests(DashCase):

@@ -1,5 +1,5 @@
 {% extends "dashboard/base.html" %}
 {% block dash_title %}{{ title }}{% endblock %}
 {% block dash_content %}
-<div class="dash-card page-form" style="max-width: 720px;">{% include "dashboard/_modal_form.html" %}</div>
+<div class="dash-card page-form" style="max-width: {% if form.visible_fields|length > 3 %}1080px{% else %}640px{% endif %};">{% include "dashboard/_modal_form.html" %}</div>
 {% endblock %}

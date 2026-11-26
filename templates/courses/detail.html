@@ -17,7 +17,6 @@
         <span class="lbl mt-3">{{ course.category.name }}</span>
         <h1>{{ course.title }}</h1>
         {% if course.subtitle %}<p class="lead-s">{{ course.subtitle }}</p>{% endif %}
-        <p class="small text-secondary mb-3">{% icon "person-badge" %} สอนโดย <a href="{% url 'core:about' %}#instructor" class="fw-medium">พี่ใยไหม</a> · อักษร จุฬาฯ 82 · เกียรตินิยมอันดับหนึ่ง เหรียญทอง · ประสบการณ์สอน 10 ปี</p>
         <div class="fact-row">
           <div class="tile-n glass"><b>{{ course.access_days }} วัน</b><span>อายุการเรียน</span></div>
           <div class="tile-n glass"><b>{{ lesson_total }} คลิป</b><span>{{ course.sections.all|length }} บท</span></div>
@@ -25,7 +24,7 @@
         </div>
       </div>
       <div class="col-lg-5">
-        <div class="hero-cover {{ st.0 }}">
+        <div class="hero-cover {{ st.0 }} {% if cover and 'ytimg' not in cover %}is-poster{% endif %}">
           {% if cover %}<img src="{{ cover }}" alt="" referrerpolicy="no-referrer">{% else %}<span class="big">{% icon st.1 "" %}</span>{% endif %}
           <div class="ui-pill glass"><span class="icon-chip sm is-ink">{% icon "file-earmark-pdf" %}</span><span>มีเอกสาร PDF ประกอบ<small>ดาวน์โหลดได้ในหน้าเรียน</small></span></div>
         </div>
@@ -88,7 +87,7 @@
           {% endif %}
           {% if LINE_CONTACT_URL or course.book_url %}
           <div class="d-grid gap-2 mt-3">
-            {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="btn btn-outline-dark">{% icon "chat-dots" %} ทักถามก่อนสมัครทาง LINE</a>{% endif %}
+            {% if LINE_CONTACT_URL %}<a href="{{ LINE_CONTACT_URL }}" target="_blank" rel="noopener" class="btn btn-outline-dark">{% icon "chat-dots" %} สอบถามทาง LINE ก่อนสมัคร</a>{% endif %}
             {% if course.book_url %}<a href="{{ course.book_url }}" target="_blank" rel="noopener sponsored" class="btn btn-outline-dark">{% icon "book" %} สั่งซื้อหนังสือเล่ม (Shopee)</a>{% endif %}
           </div>
           {% endif %}

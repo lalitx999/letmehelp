@@ -60,6 +60,8 @@
     try {
       const res = await fetch(url, { headers: FETCH, credentials: "same-origin" });
       content.innerHTML = await res.text();
+      // ฟอร์มที่มีหลายช่องเปิดเป็นหน้าต่างกว้าง (2 คอลัมน์) อัตโนมัติ
+      if (!size && content.querySelector("form[data-wide]")) dialog.classList.add("modal-lg");
       const first = content.querySelector("input:not([type=hidden]), select, textarea");
       if (first) setTimeout(() => first.focus(), 250);
     } catch (e) { crud.hide(); LMH.toast("โหลดฟอร์มไม่สำเร็จ", "bad"); }

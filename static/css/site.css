@@ -941,3 +941,9 @@ body.is-sorting, body.is-sorting * { cursor: grabbing !important; user-select: n
 .about-table th { font-size: .85rem; color: var(--muted); font-weight: 500; }
 .follow-plain { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
 .follow-plain a { display: inline-flex; align-items: center; gap: .4rem; }
+
+/* ปกคอร์สแบบโปสเตอร์แนวตั้ง (สัดส่วน A4 ตามภาพปกจริง) — เห็นทั้งภาพ ไม่ถูกตัด */
+.course-card .cover.is-poster { aspect-ratio: 1055 / 1491; }
+.cover.is-poster img, .hero-cover.is-poster img { object-fit: contain; }
+.hero-cover.is-poster { aspect-ratio: 1055 / 1491; max-width: 440px; margin-inline: auto; }
+@media (max-width: 991.98px) { .hero-cover.is-poster { max-width: 360px; } }

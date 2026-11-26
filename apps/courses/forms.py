@@ -20,11 +20,13 @@ class _Bootstrap:
 class CourseForm(_Bootstrap, forms.ModelForm):
     class Meta:
         model = Course
+        # เรียงให้ช่องที่เกี่ยวกันอยู่คู่กันในฟอร์ม 2 คอลัมน์: หมวด|slug · ราคา|ราคาโปร · วันสิ้นสุดโปร|อายุคอร์ส
         fields = [
-            "category", "title", "slug", "subtitle", "description", "thumbnail", "cover_url",
-            "price", "promo_price", "promo_ends_on", "access_days", "book_url", "is_published", "is_featured",
+            "title", "subtitle", "category", "slug", "description",
+            "price", "promo_price", "promo_ends_on", "access_days", "thumbnail", "cover_url", "book_url", "is_published", "is_featured",
         ]
-        widgets = {"description": forms.Textarea(attrs={"rows": 6}), "promo_ends_on": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
+        widgets = {"description": forms.Textarea(attrs={"rows": 8}), "promo_ends_on": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
+        labels = {"category": "หมวดคอร์ส", "slug": "ลิงก์คอร์ส (slug)"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -87,6 +89,8 @@ class SectionForm(_Bootstrap, forms.ModelForm):
     class Meta:
         model = Section
         fields = ["title", "order"]
+        labels = {"title": "ชื่อบท", "order": "ลำดับ"}
+        help_texts = {"order": "จัดลำดับง่ายกว่าด้วยการลากในหน้าเนื้อหาคอร์ส"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
