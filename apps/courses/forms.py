@@ -105,7 +105,7 @@ class LessonForm(_Bootstrap, forms.ModelForm):
 
     class Meta:
         model = Lesson
-        fields = ["title", "youtube_url", "duration_seconds", "order", "is_free_preview"]
+        fields = ["title", "youtube_url", "order", "is_free_preview"]  # ความยาวคลิประบบเก็บเองจาก YouTube ตอนมีคนดูครั้งแรก
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

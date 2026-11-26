@@ -14,7 +14,20 @@ def resume_position(last_position: int) -> int:
     return max(0, last_position - settings.RESUME_REWIND_SECONDS)
 
 
+MAX_LESSON_SECONDS = 6 * 60 * 60  # กันค่าแปลกจาก client
+
+
+def _remember_duration(lesson, client_duration: int) -> None:
+    """แอดมินไม่ต้องกรอกความยาวคลิป: ใช้ความยาวที่ YouTube player รายงานครั้งแรก (บันทึกครั้งเดียว ถ้ายังเป็น 0)"""
+    from apps.courses.models import Lesson
+
+    if not lesson.duration_seconds and 0 < client_duration <= MAX_LESSON_SECONDS:
+        Lesson.objects.filter(pk=lesson.pk, duration_seconds=0).update(duration_seconds=client_duration)
+        lesson.duration_seconds = client_duration
+
+
 def save_progress(*, user, lesson, position: int, watched_delta: int, client_duration: int = 0) -> LessonProgress:
+    _remember_duration(lesson, client_duration)
     duration = lesson.duration_seconds or max(0, client_duration)
     position = max(0, position)
     if duration:

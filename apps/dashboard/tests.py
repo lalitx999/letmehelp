@@ -752,3 +752,25 @@ class PasswordResetTests(DashCase):
     def test_unknown_email_gives_same_page(self):
         r = self.client.post(reverse("accounts:password_reset"), {"email": "nobody@x.com"})
         self.assertRedirects(r, reverse("accounts:password_reset_done"))
+
+
+class LessonDurationAutoTests(DashCase):
+    """แอดมินไม่ต้องกรอกความยาวคลิป — ระบบเก็บจาก YouTube player ตอนมีคนดูครั้งแรก"""
+
+    def test_lesson_form_has_no_duration_and_saves(self):
+        self.client.force_login(self.admin)
+        url = reverse("dashboard:lesson_add", args=[self.lesson.section_id])
+        self.assertNotContains(self.client.get(url, HTTP_X_REQUESTED_WITH="fetch"), 'name="duration_seconds"')
+        r = self.client.post(url, {"title": "ใหม่", "youtube_url": "https://youtu.be/M7lc1UVf-VE", "order": 5}, HTTP_X_REQUESTED_WITH="fetch")
+        self.assertEqual(r.json()["ok"], True, r.content[:300])
+        self.assertEqual(Lesson.objects.get(title="ใหม่").duration_seconds, 0)
+
+    def test_first_progress_report_fills_duration_once(self):
+        from apps.learning.services import progress_service
+
+        Lesson.objects.filter(pk=self.lesson.pk).update(duration_seconds=0)
+        lesson = Lesson.objects.get(pk=self.lesson.pk)
+        progress_service.save_progress(user=self.student, lesson=lesson, position=10, watched_delta=10, client_duration=1342)
+        self.assertEqual(Lesson.objects.get(pk=lesson.pk).duration_seconds, 1342)
+        progress_service.save_progress(user=self.student, lesson=Lesson.objects.get(pk=lesson.pk), position=20, watched_delta=10, client_duration=99999)
+        self.assertEqual(Lesson.objects.get(pk=lesson.pk).duration_seconds, 1342)  # ไม่ถูกทับ / ค่าแปลกไม่รับ
