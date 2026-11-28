@@ -363,3 +363,10 @@ class SeoAeoTests(BaseCase):
 
     def test_sitemap_lists_about(self):
         self.assertContains(self.client.get("/sitemap.xml"), "/about/")
+
+
+class ReferrerPolicyTests(BaseCase):
+    def test_youtube_embed_gets_origin_referrer(self):
+        """YouTube Error 153 ถ้าไม่ส่ง Referer — ต้องเป็น strict-origin-when-cross-origin ไม่ใช่ same-origin"""
+        r = self.client.get(reverse("core:home"))
+        self.assertEqual(r["Referrer-Policy"], "strict-origin-when-cross-origin")

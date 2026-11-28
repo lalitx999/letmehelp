@@ -171,3 +171,8 @@ from django.contrib.messages import constants as _m  # noqa: E402
 
 MESSAGE_TAGS = {_m.DEBUG: "secondary", _m.INFO: "info", _m.SUCCESS: "success", _m.WARNING: "warning", _m.ERROR: "danger"}
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7  # ลิงก์ตั้ง/ลืมรหัสผ่านใช้ได้ 7 วัน (นักเรียนที่นำเข้าอาจเปิดอีเมลช้า)
+
+# YouTube (embed) ต้องรู้ว่าเว็บไหนฝังวิดีโอ ไม่งั้นขึ้น "Error 153 Video player configuration error"
+# (เจอบนแอปที่ติดตั้งบน iPad) ค่าตั้งต้นของ Django คือ same-origin = ไม่ส่ง Referer ข้ามโดเมนเลย
+# strict-origin-when-cross-origin: ข้ามโดเมนส่งแค่ชื่อโดเมน (ไม่ส่ง path ของหน้า) · ในเว็บเดียวกันส่งเต็ม
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
