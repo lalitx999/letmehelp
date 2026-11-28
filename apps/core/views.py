@@ -25,17 +25,14 @@ COURSE_POSTERS = [
 
 
 def _course_posters():
-    """ถ้าหมวดมีคอร์สเดียว ลิงก์ตรงไปหน้าคอร์ส ไม่งั้นไปหน้ารายการคอร์สของหมวด"""
+    """โปสเตอร์หน้าแรก: กดแล้วไปหน้ารายการคอร์สทั้งหมด (/courses/) ส่วน course ใช้แสดงราคาใต้โปสเตอร์เมื่อหมวดมีคอร์สเดียว"""
     by_cat = {}
     for c in search_published_courses().filter(category__slug__in=[slug for slug, _, _ in COURSE_POSTERS]):
         by_cat.setdefault(c.category.slug, []).append(c)
+    url = reverse("courses:list")
     posters = []
     for slug, image, title in COURSE_POSTERS:
         courses = by_cat.get(slug, [])
-        if len(courses) == 1:
-            url = reverse("courses:detail", args=[courses[0].slug])
-        else:
-            url = reverse("courses:list") + f"?category={slug}"
         posters.append({"image": image, "title": title, "url": url, "course": courses[0] if len(courses) == 1 else None})
     return posters
 
