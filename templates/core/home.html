@@ -20,7 +20,7 @@
       <li>{% icon "star" %} ประสบการณ์ 10 ปี</li>
     </ul>
     <div class="hero-cta">
-      <a href="#courses" class="btn btn-dark btn-lg">ดูคอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a>
+      <a href="{% url 'courses:list' %}" class="btn btn-dark btn-lg">ดูคอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a>
       <a href="{% url 'core:free_trial' %}" class="btn btn-glass btn-lg">{% icon "play-circle" %} ทดลองเรียนฟรี</a>
     </div>
     <div class="tiles">
@@ -45,7 +45,7 @@
 <section class="section" id="courses">
   <div class="container">
     <div class="text-center mb-5" data-reveal>
-      <h2 class="display-6">คอร์สทั้งหมด</h2>
+      <h2 class="display-6"><a href="{% url 'courses:list' %}" class="title-link">คอร์สทั้งหมด {% icon "arrow-right" "icon-arrow" %}</a></h2>
     </div>
     <div class="posters">
       {% for p in posters %}

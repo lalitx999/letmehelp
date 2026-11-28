@@ -301,7 +301,7 @@ class ProtectedPlayerTests(BaseCase):
         r = self.client.get(reverse("learning:player_lesson", args=["c", self.lesson.pk]))
         self.assertContains(r, 'id="pl-shield"')
         self.assertContains(r, 'class="pl-wm"')
-        self.assertContains(r, "s@x.com")
+        self.assertContains(r, 'aria-hidden="true">Let Me Help</div>')
         self.assertContains(r, "is-protected")
 
     def test_free_preview_for_anonymous_has_no_watermark(self):
